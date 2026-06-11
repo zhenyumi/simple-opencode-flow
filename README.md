@@ -10,31 +10,31 @@ The agents live in `.opencode/agents/`, the native project-local OpenCode agent 
 flowchart TD
     U["User request"] --> F["flow<br/><br/>choose the next workflow step"]
 
-    F --> E
+    F -- "start or continue workflow" --> E
 
     subgraph PLANPHASE["Planning phase"]
         direction TB
 
         E["explore-repository<br/><br/>learn what the project and task depend on"]
-        EV[["evidence.md<br/><br/>records what was actually read<br/>and what facts were learned"]]
+        EV[["evidence.md<br/><br/>records inspected sources,<br/>facts, constraints, risks, and unknowns"]]
         D["design-change<br/><br/>choose an approach supported by evidence"]
         W["write-plan<br/><br/>turn the approved design into executable tasks"]
         PLAN[["plan.md<br/><br/>defines exactly what may be executed"]]
         RP["review-plan<br/><br/>approve the exact plan + evidence tuple"]
 
-        E --> EV
-        EV --> D
-        D --> W
-        W --> PLAN
-        W --> EV
-        PLAN --> RP
-        EV --> RP
+        E -- "records discovered evidence" --> EV
+        EV -- "supports design decisions" --> D
+        D -- "approved design input" --> W
+        W -- "writes execution authority" --> PLAN
+        W -- "updates evidence record<br/>without inventing new evidence" --> EV
+        PLAN -- "review execution scope" --> RP
+        EV -- "review evidence coverage<br/>and source access" --> RP
     end
 
-    RP -- "needs changes" --> W
+    RP -- "revise plan or evidence" --> W
     RP -- "approved exact tuple" --> A["Wait for explicit execution approval"]
 
-    A --> I
+    A -- "user approves execution" --> I
 
     subgraph EXECPHASE["Execution phase"]
         direction TB
@@ -43,12 +43,12 @@ flowchart TD
         TE[["Task evidence<br/><br/>records what happened during this task"]]
         RC["review-code<br/><br/>check scope, quality, and evidence"]
 
-        I --> TE
-        TE --> RC
+        I -- "records task result" --> TE
+        TE -- "review implementation evidence" --> RC
     end
 
-    RC -- "needs changes" --> I
-    RC -- "more approved tasks" --> I
+    RC -- "fix current task" --> I
+    RC -- "next approved task" --> I
     RC -- "all tasks approved" --> V
 
     subgraph RELEASEPHASE["Release phase"]
@@ -58,12 +58,12 @@ flowchart TD
         VE[["Verification evidence<br/><br/>records final check results"]]
         AR["audit-release<br/><br/>final release-readiness audit"]
 
-        V --> VE
-        VE --> AR
+        V -- "records verification result" --> VE
+        VE -- "audit final evidence" --> AR
     end
 
-    AR -- "blocked" --> B["BLOCKED"]
-    AR -- "pass" --> DONE["Release-ready result"]
+    AR -- "blocked by audit" --> B["BLOCKED"]
+    AR -- "release audit passed" --> DONE["Release-ready result"]
 
     F -. "same-session handoff<br/><br/>helps continue the conversation<br/>but is not an authority" .-> U
 
