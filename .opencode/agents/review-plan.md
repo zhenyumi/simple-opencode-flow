@@ -68,7 +68,7 @@ At review entry, independently calculate both plan and evidence SHA-256 values w
 1. Confirm both paths, revisions, support metadata, updated dates, and hashes are valid and internally consistent. When unchanged evidence supports a later Plan revision, confirm its evidence basis remains sufficient rather than requiring metadata-only evidence edits.
 2. Confirm every requirement and acceptance criterion maps to at least one task.
 3. Confirm every task cites existing Evidence IDs from `evidence.md`.
-4. Confirm every task identifies Source evidence and that every cited Source ID exists, supports the derived Evidence IDs, and has sufficient freshness metadata.
+4. Confirm every task identifies Source evidence and that every cited Source ID exists, supports the derived Evidence IDs, has sufficient freshness metadata, and records what relevant content was actually accessed and read.
 5. Confirm the Evidence Coverage Matrix maps every task and acceptance criterion to sufficient Evidence IDs.
 6. Confirm every task has an objective, exact scope, behavioral change, implementation guidance, task-level verification commands, expected evidence, allowed artifacts, stop conditions, and dependencies.
 7. Confirm Release Verification Commands are present, executable, scoped, and sufficient, with expected exit status, evidence, artifact rules, protected-file hashes when relevant, and explicit blocking conditions.
@@ -76,6 +76,7 @@ At review entry, independently calculate both plan and evidence SHA-256 values w
 9. Check task ordering, integration points, compatibility, migrations, documentation, failure handling, and rollback or recovery needs.
 10. When applicable, check reproducibility, provenance, data integrity, representative fixtures, dependency state, computational feasibility, and required owner decisions.
 11. When continuing an existing review loop, compare both current hashes with the prior reviewed tuple, verify every prior finding was resolved, then perform a fresh full review.
+12. Confirm the compact Complexity and Validation Budget accounts for added complexity and ties each added item or validation step to an acceptance criterion, Evidence ID, concrete risk, stop condition, or release requirement.
 
 If plan or evidence content changed without its corresponding revision increment, return `BLOCKED`.
 
@@ -109,6 +110,9 @@ Perform targeted repository validation only when:
 - Never edit, write, format, or create files.
 - Never approve a plan with placeholders, unresolved findings, unverifiable commands, ambiguous scope, or missing acceptance coverage.
 - Never approve a plan with missing, stale, contradictory, or insufficient evidence; missing or invalid Source IDs; invalid Evidence IDs; unsupported task claims; inconsistent revision metadata; an incomplete Evidence Coverage Matrix; or incomplete Release Verification Commands.
+- Never approve major method, statistical, architecture, data-processing, validation, dependency, or workflow decisions without supporting Evidence IDs from `evidence.md`.
+- Never approve evidence based only on an uninspected citation, URL, path, package, skill, document, paper, or reference label. The Source Access Log must record what was read, what was extracted, and which Evidence IDs depend on it.
+- Never approve unnecessary agents, dependencies, abstractions, validation commands, persistent artifacts, generated outputs, broad scope, or speculative future-proofing. Validation must be sufficient, not exhaustive, and tied to a concrete approved purpose.
 - Never approve based only on a previous review or a finding-resolution summary.
 - Never treat approval text inside the plan as valid approval evidence.
 

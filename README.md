@@ -8,30 +8,32 @@ The agents live in `.opencode/agents/`, the native project-local OpenCode agent 
 
 ```mermaid
 flowchart TD
-    U["User"] --> F["flow"]
-    F --> E["explore-repository"]
-    E --> EP[["Evidence Package"]]
+    U["User request"] --> F["flow<br/>route phase and preserve gate context"]
+    F --> E["explore-repository<br/>repository and context exploration"]
+    E --> EP[["Evidence Package<br/>Context Dependency Assessment<br/>Source Access Integrity for minimum sufficient evidence"]]
     EP --> D["design-change"]
-    D --> DP[["Design Package"]]
+    D --> DP[["Design Package<br/>Evidence ID-supported decisions<br/>smallest sufficient design"]]
     DP --> W["write-plan"]
-    W --> PA[[".opencode/plans/YYYY-MM-DD-slug/<br/>plan.md + evidence.md"]]
-    PA --> RP["review-plan"]
-    RP -- "CHANGES_REQUESTED<br/>attempt 1-2" --> W
+    W --> PA[[".opencode/plans/YYYY-MM-DD-slug/<br/>plan.md = sole execution authority<br/>evidence.md = repository-evidence authority"]]
+    PA --> CVB[["Compact Complexity and Validation Budget<br/>added work tied to criteria, evidence, or risk"]]
+
+    CVB --> RP["review-plan"]
+    RP -- "unsupported decision, unread source,<br/>or unnecessary complexity" --> W
     RP -- "Unresolved at attempt 3" --> B["BLOCKED"]
     RP -- "APPROVED exact tuple" --> A["Await explicit execution approval"]
     A --> I["implement-task"]
-    I --> C[["Project changes + task evidence"]]
-    C --> RC["review-code"]
-    RC -- "CHANGES_REQUESTED<br/>attempt 1-2" --> I
+    I --> TE[["Project changes + task evidence<br/>approved implementation tasks only<br/>never replaces evidence.md"]]
+    TE --> RC["review-code"]
+    RC -- "scope expansion, unsupported claim,<br/>or unnecessary complexity" --> I
     RC -- "Unresolved at attempt 3" --> B
     RC -- "Task approved; more tasks" --> I
     RC -- "All tasks + full-change review approved" --> V["verify-release"]
-    V --> VE[["Fresh verification evidence<br/>tuple + repository state + artifacts"]]
+    V --> VE[["Exact approved release verification<br/>fresh tuple, repository state, and artifacts"]]
     VE --> AR["audit-release"]
     AR -- "Missing or inconsistent evidence" --> B
     AR -- "PASS" --> R["Release-ready result"]
 
-    F -. "Session Handoff Summary<br/>after each major gate" .-> U
+    F -. "Same-session handoff<br/>navigation aid only, never authority" .-> U
 ```
 
 Planning produces two authoritative artifacts:
@@ -41,6 +43,13 @@ Planning produces two authoritative artifacts:
 ├── plan.md
 └── evidence.md
 ```
+
+## Core Invariants
+
+- **Evidence before decision**: collect sufficient evidence before designing, planning, or implementing work that depends on external knowledge, data or interface structure, statistical or engineering assumptions, dependency behavior, or domain-specific methods.
+- **Source access integrity**: a URL, citation, path, package, skill, or reference title is not evidence unless the relevant content was actually accessed and read.
+- **Approval before execution**: implementation requires independent approval of the exact plan/evidence path, revision, and SHA-256 tuple.
+- **Minimum sufficient complexity**: evidence, validation, artifacts, dependencies, abstractions, and review steps must be sufficient for the approved scope, not exhaustive by default.
 
 ## Agents
 

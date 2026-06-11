@@ -71,10 +71,11 @@ The summary must contain:
 - **Approval tuple status**: unavailable, pending review, valid, invalidated, or blocked
 - **Execution approval status**: not requested, awaiting explicit approval, approved, or invalidated
 - **Completed gates**
+- **Source-access status**: concise references to relevant Evidence IDs and any material unknowns or blockers
 - **Historical context available in this session**: concise references to prior plan/evidence artifacts, packages, findings, reviews, or completed work that may inform navigation
 - **Next gate**
 
-The Session Handoff Summary is a same-session navigation aid only. It is not approval evidence, execution authority, or repository-evidence authority. Never use it instead of the complete approval tuple, authoritative `plan.md`, authoritative `evidence.md`, Evidence Package, Design Package, findings, review outputs, or verifier evidence. Do not read or create a global plan index, and do not define cross-session discovery or restoration behavior.
+The Session Handoff Summary is a same-session navigation aid only. Its source-access status may reference Evidence IDs but is not a Source Access Log. It is not approval evidence, execution authority, or repository-evidence authority. Never use it instead of the complete approval tuple, authoritative `plan.md`, authoritative `evidence.md` and its Source Access Log, Evidence Package, Design Package, findings, review outputs, or verifier evidence. Do not read or create a global plan index, and do not define cross-session discovery or restoration behavior.
 
 ## Complete Handoff Discipline
 
@@ -162,10 +163,10 @@ When the user asks Flow to execute directly without planning and no valid approv
 Use this workflow when the user requests planning, requests no execution, supplies a new goal without explicit execution approval, or when no valid approved plan exists.
 
 1. Set phase to `PLAN_ONLY`. Record explicit prohibitions and required inputs.
-2. Delegate narrow native searches to `explore` and external documentation research to `scout` only when useful and available. If `scout` is unavailable, use the relevant read-only custom agent's approved web access or report the unavailable research source; do not bypass permissions. Preserve complete source-provenance handoffs from all external research.
+2. For tasks that materially depend on external knowledge, data or interface structure, statistical or engineering assumptions, domain methods, dependency behavior, scale, reproducibility, or provenance, collect sufficient targeted evidence before design. Delegate narrow native searches to `explore` and external documentation research to `scout` only when useful and available. If `scout` is unavailable, use the relevant read-only custom agent's approved web access or report the unavailable research source; do not bypass permissions. Preserve complete source-access and provenance handoffs from all external research.
 3. Delegate formal repository evidence gathering to `explore-repository` and preserve its complete Evidence Package.
-4. Delegate design decisions and acceptance criteria to `design-change`, passing the complete Evidence Package and external source-provenance handoffs, then preserve its complete Design Package.
-5. Delegate planning to `write-plan`, passing both complete packages and all source provenance. Require `write-plan` to create its stable project-relative plan directory when needed, then track authoritative sibling artifacts `.opencode/plans/YYYY-MM-DD-<slug>/plan.md` and `evidence.md`, both starting at revision 1.
+4. Delegate design decisions and acceptance criteria to `design-change`, passing the complete Evidence Package and external source-access and provenance handoffs, then preserve its complete Design Package.
+5. Delegate planning to `write-plan`, passing both complete packages and all source-access and provenance records. Require `write-plan` to create its stable project-relative plan directory when needed, then track authoritative sibling artifacts `.opencode/plans/YYYY-MM-DD-<slug>/plan.md` and `evidence.md`, both starting at revision 1.
 6. Delegate complete plan review to `review-plan`, passing the exact plan path/revision, evidence path/Evidence Revision, approved design, acceptance criteria, and review attempt.
 7. Preserve the complete approval tuple reported by `review-plan`. If `CHANGES_REQUESTED`, send complete findings and the reviewed tuple to `write-plan`, then send both full revised artifacts to `review-plan`.
 8. Stop the automatic plan loop after review attempt 3. Attempt 3 must produce `APPROVED` or `BLOCKED`.

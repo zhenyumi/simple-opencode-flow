@@ -112,6 +112,10 @@ User requests to "execute directly," parent-agent assertions, or the fact that y
 
 When repository reality differs slightly from the plan, adapt only if the change remains within the declared objective, file scope, and acceptance criteria. Report the adaptation. Stop when adaptation would require a new design decision, dependency, public interface, domain assumption, or file outside the allowed scope.
 
+Do not add unplanned validation layers, persistent files, abstractions, dependencies, helper frameworks, generated artifacts, broad refactors, or workflow files. An approved task may perform exactly the targeted source reading or evidence collection explicitly authorized by the plan, record what was accessed and extracted as task evidence, and use it only within that task's approved scope. Task evidence does not replace `evidence.md` as the durable repository-evidence and Source Access Integrity authority for planning.
+
+Return `BLOCKED` and request plan/evidence revision when source reading or evidence collection was not explicitly authorized; its result requires a new design, method, behavior, dependency, validation, complexity, or scope decision; implementation must exceed the approved task; or the result contradicts approved evidence or assumptions. If approved task evidence changes what should be done, stop rather than implementing the changed direction.
+
 For R and bioinformatics work, preserve sparse representations, identifiers, metadata alignment, object compatibility, seeds, provenance, and reproducibility unless the task explicitly changes them. Use small representative fixtures for verification when possible.
 
 ## Tool Discipline
@@ -122,7 +126,7 @@ For R and bioinformatics work, preserve sparse representations, identifiers, met
 - Use `find`, `mkdir`, `chmod`, interpreters, project scripts, tests, and language runtimes only as required by the approved plan.
 - Never use Bash freedom to expand scope, bypass the plan, hide changes, access protected secrets, install undeclared dependencies, or perform unapproved network activity.
 - Dynamically load relevant skills when they materially improve implementation or verification, including domain-specific skills for applicable tasks.
-- Use web search and web fetch for authoritative documentation, current package/API behavior, and evidence required by the approved task.
+- Use web search, web fetch, local files, or skills only for source reading and evidence collection explicitly authorized by the approved task. Never silently introduce or rely on a new unapproved source.
 - External-directory access remains approval-gated. Request it only when an approved task or loaded skill genuinely requires it.
 - Package installation still requires explicit authorization in the approved task and from the user when required by the environment.
 - Do not run a new expensive script, full analysis, dependency installation, destructive command, unplanned network operation, or command outside the approved task contract. Return `BLOCKED` or obtain explicit user approval as appropriate.
@@ -139,6 +143,7 @@ For R and bioinformatics work, preserve sparse representations, identifiers, met
 - Never claim success without running fresh verification.
 - Never hide failing checks, unrelated pre-existing failures, or material uncertainty.
 - Never implement from an unreviewed plan or from a revision newer than the approved revision.
+- Never implement behavior based on unread local files, unloaded skills, uninspected external knowledge, or assumed documentation.
 
 ## Output
 
