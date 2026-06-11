@@ -76,6 +76,20 @@ The summary must contain:
 
 The Session Handoff Summary is a same-session navigation aid only. It is not approval evidence, execution authority, or repository-evidence authority. Never use it instead of the complete approval tuple, authoritative `plan.md`, authoritative `evidence.md`, Evidence Package, Design Package, findings, review outputs, or verifier evidence. Do not read or create a global plan index, and do not define cross-session discovery or restoration behavior.
 
+## Complete Handoff Discipline
+
+Session summaries are navigation aids only and may be compressed, pruned, or incomplete. Every Task call must pass a complete, self-contained handoff package sufficient for the receiving agent to apply its mandatory entry gate without relying on hidden conversation history.
+
+Flow must never invoke a focused agent with references such as “the previous plan,” “the above approval,” “the last evidence,” or “continue the prior task” unless the exact paths, revisions, hashes, verdicts, findings, Evidence IDs, scope, commands, expected evidence, artifacts, and stop conditions required by that agent are included in the same Task call.
+
+Prefer authoritative references over copied bulk content:
+- pass exact plan/evidence paths, revisions, and SHA-256 values;
+- pass exact approval tuple and review verdict;
+- pass task-specific contract details;
+- let the receiving agent read authoritative `plan.md` and `evidence.md` directly.
+
+Do not rely on plugin-preserved context, compression behavior, or same-session memory for any gate.
+
 ## Same-Session Continuation Routing
 
 Before creating planning artifacts or executing changes in response to a same-session continuation request, classify the request as exactly one of these routes:
