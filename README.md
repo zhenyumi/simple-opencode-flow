@@ -8,32 +8,78 @@ The agents live in `.opencode/agents/`, the native project-local OpenCode agent 
 
 ```mermaid
 flowchart TD
-    U["User request"] --> F["flow<br/>route phase and preserve gate context"]
-    F --> E["explore-repository<br/>repository and context exploration"]
-    E --> EP[["Evidence Package<br/>Context Dependency Assessment<br/>Source Access Integrity for minimum sufficient evidence"]]
-    EP --> D["design-change"]
-    D --> DP[["Design Package<br/>Evidence ID-supported decisions<br/>smallest sufficient design"]]
-    DP --> W["write-plan"]
-    W --> PA[[".opencode/plans/YYYY-MM-DD-slug/<br/>plan.md = sole execution authority<br/>evidence.md = repository-evidence authority"]]
-    PA --> CVB[["Compact Complexity and Validation Budget<br/>added work tied to criteria, evidence, or risk"]]
+    U["User request"] --> F["flow<br/><br/>choose the next workflow step"]
 
-    CVB --> RP["review-plan"]
-    RP -- "unsupported decision, unread source,<br/>or unnecessary complexity" --> W
-    RP -- "Unresolved at attempt 3" --> B["BLOCKED"]
-    RP -- "APPROVED exact tuple" --> A["Await explicit execution approval"]
-    A --> I["implement-task"]
-    I --> TE[["Project changes + task evidence<br/>approved implementation tasks only<br/>never replaces evidence.md"]]
-    TE --> RC["review-code"]
-    RC -- "scope expansion, unsupported claim,<br/>or unnecessary complexity" --> I
-    RC -- "Unresolved at attempt 3" --> B
-    RC -- "Task approved; more tasks" --> I
-    RC -- "All tasks + full-change review approved" --> V["verify-release"]
-    V --> VE[["Exact approved release verification<br/>fresh tuple, repository state, and artifacts"]]
-    VE --> AR["audit-release"]
-    AR -- "Missing or inconsistent evidence" --> B
-    AR -- "PASS" --> R["Release-ready result"]
+    F --> E
 
-    F -. "Same-session handoff<br/>navigation aid only, never authority" .-> U
+    subgraph PLANPHASE["Planning phase"]
+        direction TB
+
+        E["explore-repository<br/><br/>learn what the project and task depend on"]
+        EV[["evidence.md<br/><br/>records what was actually read<br/>and what facts were learned"]]
+        D["design-change<br/><br/>choose an approach supported by evidence"]
+        W["write-plan<br/><br/>turn the approved design into executable tasks"]
+        PLAN[["plan.md<br/><br/>defines exactly what may be executed"]]
+        RP["review-plan<br/><br/>approve the exact plan + evidence tuple"]
+
+        E --> EV
+        EV --> D
+        D --> W
+        W --> PLAN
+        W --> EV
+        PLAN --> RP
+        EV --> RP
+    end
+
+    RP -- "needs changes" --> W
+    RP -- "approved exact tuple" --> A["Wait for explicit execution approval"]
+
+    A --> I
+
+    subgraph EXECPHASE["Execution phase"]
+        direction TB
+
+        I["implement-task<br/><br/>perform one approved task"]
+        TE[["Task evidence<br/><br/>records what happened during this task"]]
+        RC["review-code<br/><br/>check scope, quality, and evidence"]
+
+        I --> TE
+        TE --> RC
+    end
+
+    RC -- "needs changes" --> I
+    RC -- "more approved tasks" --> I
+    RC -- "all tasks approved" --> V
+
+    subgraph RELEASEPHASE["Release phase"]
+        direction TB
+
+        V["verify-release<br/><br/>run only the approved verification commands"]
+        VE[["Verification evidence<br/><br/>records final check results"]]
+        AR["audit-release<br/><br/>final release-readiness audit"]
+
+        V --> VE
+        VE --> AR
+    end
+
+    AR -- "blocked" --> B["BLOCKED"]
+    AR -- "pass" --> DONE["Release-ready result"]
+
+    F -. "same-session handoff<br/><br/>helps continue the conversation<br/>but is not an authority" .-> U
+
+    subgraph RULES["Rules that govern every phase"]
+        direction TB
+
+        R1["Evidence before decisions<br/><br/>do not design from guesses"]
+        R2["Read sources before citing them<br/><br/>links and filenames are not evidence"]
+        R3["Minimum sufficient complexity<br/><br/>avoid unnecessary files, checks, and abstractions"]
+        R4["Exact approval before execution<br/><br/>only the approved tuple can be implemented"]
+    end
+
+    RULES -. "governs" .-> PLANPHASE
+    RULES -. "governs" .-> EXECPHASE
+    RULES -. "governs" .-> RELEASEPHASE
+
 ```
 
 Planning produces two authoritative artifacts:
