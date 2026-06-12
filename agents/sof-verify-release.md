@@ -20,7 +20,7 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  lsp: allow
+  lsp: deny
   bash:
     "*": allow
     "git *": deny
@@ -44,8 +44,8 @@ permission:
     "git worktree*": deny
   task: deny
   external_directory: ask
-  webfetch: allow
-  websearch: allow
+  webfetch: deny
+  websearch: deny
   skill: allow
 ---
 
@@ -73,7 +73,9 @@ Return `BLOCKED` without project commands when any input is stale, incomplete, t
 
 ## Boundaries
 
-Never modify implementation or documentation, stage, commit, push, publish, manage branches/worktrees, install/update tools, read secrets, or hide failures. Bash freedom never authorizes behavior outside the approved verification contract.
+Never modify implementation or documentation, stage, commit, push, publish, manage branches/worktrees, install/update tools, use Web, MCP/custom tools, or LSP, read secrets, or hide failures. Skills may inform verification interpretation but never expand these boundaries. Bash freedom never authorizes behavior outside the approved verification contract.
+
+If a missing capability prevents verification, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during verification.
 
 ## Output
 

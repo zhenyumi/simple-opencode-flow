@@ -68,9 +68,33 @@ If execution reveals facts that invalidate the current profile, Flow stops execu
 - **On-demand external context**: agents load skills and authoritative web sources only to resolve a concrete, material information or evidence gap, not routinely or for completeness.
 - **Independent repository-state review**: code review and release audit use read-only Git commands to establish actual scope instead of trusting implementer reports alone.
 
+## Capabilities And Native Fallback
+
+All custom agents may load any installed skill. A skill supplies instructions and routing context; it never overrides the agent's actual Web, LSP, Bash, edit, Task, MCP/custom-tool, or external-directory permissions.
+
+| Agent | Web | LSP | MCP/custom tools |
+| --- | --- | --- | --- |
+| `flow` | deny | deny | deny |
+| `sof-research-source` | allow | deny | deny |
+| `sof-explore-repository` | deny | allow | deny |
+| `sof-design-change` | deny | allow | deny |
+| `sof-write-plan` | deny | deny | deny |
+| `sof-review-plan` | deny | deny | deny |
+| `sof-implement-task` | allow | allow | allow |
+| `sof-review-code` | deny | allow | deny |
+| `sof-verify-release` | deny | deny | deny |
+| `sof-audit-release` | deny | deny | deny |
+
+Configured MCP servers and custom tools are trusted Build-level capabilities available only to `sof-implement-task` among custom agents. They remain constrained by the approved implementation unit and may not be used to expand scope, perform release actions, or create unapproved local or external side effects.
+
+When a custom agent cannot continue within its permissions, it returns a compact `CAPABILITY_GAP` handoff. Flow routes local read-only gaps to native `explore`, external source questions to `sof-research-source`, dependency-source research to native `scout` when available, and remaining pre-gate MCP/custom-tool gaps to native `general`. If `scout` is unavailable, Flow uses `general`.
+
+Native fallback output is input only: the responsible SOF agent must validate and incorporate it, and it can never serve directly as plan approval, code approval, verification, or audit receipt. Native `general` never replaces a formal SOF gate and cannot perform or repair work after execution approval or during code review, verification, or audit.
+
 ## Terminology
 
 - **Subagent invocation**: one focused-agent call made by `flow`.
+- **Capability gap**: a compact request for one missing tool capability that preserves the responsible SOF gate.
 - **Implementation unit**: one executable item in the approved `plan.md`.
 - **Implementation-unit review**: early independent code review of one completed implementation unit when evidence requires it.
 - **Integrated review**: independent review of the complete implemented change after all implementation units finish.
@@ -82,6 +106,7 @@ If execution reveals facts that invalidate the current profile, Flow stops execu
 | Agent | Role |
 | --- | --- |
 | `flow` | Select the workflow profile, route gates, and maintain compact `state.md` receipts |
+| `sof-research-source` | Read authoritative external sources for standalone questions or concrete planning evidence gaps |
 | `sof-explore-repository` | Collect compact repository evidence for Standard and High Risk planning |
 | `sof-design-change` | Define the smallest evidence-backed Standard or High Risk design |
 | `sof-write-plan` | Create or revise planning artifacts and initialize `state.md` |
@@ -105,8 +130,8 @@ node scripts/install.mjs --scope global
 # Dry-run (preview without changes)
 node scripts/install.mjs --dry-run
 
-# Custom directory install (copies agents to specified path)
-node scripts/install.mjs --target ./my-agents
+# Custom project directory install (creates .opencode/agents/ at target with config patching)
+node scripts/install.mjs --target ./my-project
 ```
 
 The installer:
@@ -122,7 +147,7 @@ If you cannot or prefer not to run the installer script:
 1. **Copy agent files** from `agents/` to your OpenCode agents directory:
    - **Project-level:** `<project>/.opencode/agents/`
    - **Global:** `~/.config/opencode/agents/`
-   - **Custom:** any directory of your choice
+   - **Custom:** `<custom-project>/.opencode/agents/` (use `--target <path>` for automated install)
 
 2. **(Optional) Configure deny entries** in your project's `opencode.json`:
    ```json
@@ -173,4 +198,6 @@ Within the same session, `flow` distinguishes:
 
 Flow automatically selects `STREAMLINED`, `STANDARD`, or `HIGH_RISK`, records the choice in `state.md`, and restores interrupted workflows from the three sibling artifacts. It edits only the active plan's `state.md` and never runs shell commands.
 
-`sof-implement-task` and `sof-verify-release` intentionally have broad Build-level and verification capabilities, respectively. Their approved contracts limit what they may do. No custom agent commits, pushes, publishes, or performs a release action.
+For ordinary factual or documentation questions, Flow does not start a planning workflow. It answers local questions with read-only access, delegates named websites or authoritative external sources to `sof-research-source`, and uses native fallback agents only for focused capability gaps. External research is never routed to the local-only repository explorer.
+
+`sof-implement-task` intentionally has broad Build-level capabilities, including configured MCP/custom tools. `sof-verify-release` has broad Bash capability but no Web, LSP, or MCP/custom-tool access. Their approved contracts limit what they may do. No custom agent commits, pushes, publishes, or performs a release action.

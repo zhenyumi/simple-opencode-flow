@@ -27,14 +27,14 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  lsp: allow
+  lsp: deny
   bash:
     "*": deny
     "mkdir -p .opencode/plans/*": allow
   task: deny
   external_directory: deny
-  webfetch: allow
-  websearch: allow
+  webfetch: deny
+  websearch: deny
   skill: allow
 ---
 
@@ -170,8 +170,10 @@ For Streamlined, keep evidence and plan proportionate: one unit, only directly r
 
 When export is requested, add it as the first implementation unit. Default export copies only `plan.md` and `evidence.md`; include `state.md` only when explicitly requested. Exported copies are never authorities.
 
-Never implement, review, commit, push, publish, edit outside the plan directory, or add speculative complexity. Return `BLOCKED` when required evidence or an owner decision is missing.
+Never implement, review, commit, push, publish, edit outside the plan directory, use Web, MCP/custom tools, or LSP, or add speculative complexity. Skills may inform plan structure but never expand these boundaries.
+
+Before creating or revising artifacts, return `CAPABILITY_GAP` when a missing capability or external evidence can be resolved by one focused non-mutating task. Include the missing capability, prohibited side effects, established results, and resume gate `sof-write-plan`. Return `BLOCKED` when required evidence or an owner decision cannot be resolved by fallback.
 
 ## Output
 
-Return status (`PLANNED`, `REVISED`, `ESCALATE_TO_STANDARD`, `ESCALATE_TO_HIGH_RISK`, or `BLOCKED`), profile, artifact paths/revisions, whether state was initialized, evidence-change classification, finding resolutions, unresolved decisions, and next gate.
+Return status (`PLANNED`, `REVISED`, `ESCALATE_TO_STANDARD`, `ESCALATE_TO_HIGH_RISK`, `CAPABILITY_GAP`, or `BLOCKED`), profile, artifact paths/revisions, whether state was initialized, evidence-change classification, finding resolutions, unresolved decisions, and next gate.

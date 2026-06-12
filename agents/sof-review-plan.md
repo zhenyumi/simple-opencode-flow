@@ -20,7 +20,7 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  lsp: allow
+  lsp: deny
   bash:
     "*": deny
     "shasum -a 256 .opencode/plans/*/plan.md": allow
@@ -29,8 +29,8 @@ permission:
     "sha256sum .opencode/plans/*/evidence.md": allow
   task: deny
   external_directory: deny
-  webfetch: allow
-  websearch: allow
+  webfetch: deny
+  websearch: deny
   skill: allow
 ---
 
@@ -63,7 +63,7 @@ Confirm:
 7. Release Verification Commands are exact, scoped, executable, evidence-producing, and include state/artifact rules.
 8. User-locked mechanisms and artifacts are preserved.
 
-Perform only targeted repository validation for a missing, stale, ambiguous, conflicting, or unsupported claim. Never repeat broad exploration.
+Perform only targeted repository validation for a missing, stale, ambiguous, conflicting, or unsupported claim. Never repeat broad exploration or perform external research.
 
 ## Revision Classification And Budgets
 
@@ -83,11 +83,13 @@ Approval applies only to the exact plan path/revision/SHA-256, evidence path/rev
 
 ## Boundaries
 
-Never approve placeholders, ambiguous scope, unresolved findings, unsupported decisions, unread sources, incomplete verification, silent replacement of locked choices, or unnecessary complexity. Never edit, run tests, Git, or non-hash shell commands.
+Never approve placeholders, ambiguous scope, unresolved findings, unsupported decisions, unread sources, incomplete verification, silent replacement of locked choices, or unnecessary complexity. Never edit, run tests, Git, use Web, MCP/custom tools, or LSP, or run non-hash shell commands. Skills may inform review technique but never expand these boundaries.
+
+When a missing capability or external evidence prevents review, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, established results, and resume gate `sof-review-plan`. Any fallback result must be incorporated into revised authoritative artifacts before this gate reruns.
 
 ## Output
 
-Begin with `APPROVED`, `CHANGES_REQUESTED`, or `BLOCKED`, then report:
+Begin with `APPROVED`, `CHANGES_REQUESTED`, `CAPABILITY_GAP`, or `BLOCKED`, then report:
 
 - workflow profile;
 - complete approval tuple;

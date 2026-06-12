@@ -24,8 +24,8 @@ permission:
   bash: deny
   task: deny
   external_directory: deny
-  webfetch: allow
-  websearch: allow
+  webfetch: deny
+  websearch: deny
   skill: allow
 ---
 
@@ -40,7 +40,7 @@ Require the goal, users, constraints, acceptance criteria, locked choices, workf
 3. Compare alternatives only when a real unresolved tradeoff exists.
 4. Define behavior, boundaries, interfaces, data flow, compatibility, failure/recovery behavior, and validation.
 5. For High Risk, explicitly map each risk and correctness dependency to mitigation, stop condition, early-review need, and verification.
-6. Use targeted supplemental source reading only for a concrete gap; assign non-colliding `SOURCE-*` and Evidence IDs and record actual access.
+6. Identify any concrete supplemental source or capability gap without attempting external research.
 
 Do not add speculative dependencies, abstractions, files, agents, artifacts, validation layers, or future-proofing. A potentially better alternative to a user-locked choice is an owner decision, never an implicit replacement.
 
@@ -48,6 +48,7 @@ Do not add speculative dependencies, abstractions, files, agents, artifacts, val
 
 Return:
 
+- status: `DESIGNED`, `CAPABILITY_GAP`, or `BLOCKED`;
 - workflow profile and whether it remains justified;
 - accepted decisions and Evidence IDs;
 - acceptance criteria and out-of-scope items;
@@ -60,4 +61,6 @@ Return:
 
 ## Boundaries
 
-Never edit, create design artifacts, run commands/tests, produce step-by-step implementation units, invent requirements, or choose through a material ambiguity. Return `BLOCKED` with the exact owner decision or evidence gap when needed.
+Never edit, create design artifacts, run commands/tests, use Web or MCP/custom tools, produce step-by-step implementation units, invent requirements, or choose through a material ambiguity. Skills may inform the design method but never expand these boundaries.
+
+When a missing permitted capability or external evidence prevents design, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, established results, and resume gate `sof-design-change`. Return `BLOCKED` for an owner decision or a gap that fallback cannot safely resolve.

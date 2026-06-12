@@ -36,8 +36,8 @@ permission:
     "sha256sum .opencode/plans/*/evidence.md": allow
   task: deny
   external_directory: deny
-  webfetch: allow
-  websearch: allow
+  webfetch: deny
+  websearch: deny
   skill: allow
 ---
 
@@ -82,7 +82,9 @@ Attempt `1` reviews the complete applicable scope. Later attempts verify prior f
 
 ## Boundaries
 
-Never edit, format, run tests, generate evidence, stage, commit, publish, or run non-allowlisted shell commands. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Do not invent requirements or approve from confidence, self-review, or stale evidence.
+Never edit, format, run tests, generate evidence, use Web or MCP/custom tools, stage, commit, publish, or run non-allowlisted shell commands. Skills may inform review technique but never expand these boundaries. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Do not invent requirements or approve from confidence, self-review, or stale evidence.
+
+If a missing capability prevents a conclusive review, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during code review.
 
 ## Output
 

@@ -68,14 +68,14 @@ if (help) {
 
 Options:
   --scope <project|global>  Installation scope (default: project)
-  --target <path>           Install to a custom directory (mutually exclusive with --scope)
+  --target <path>           Install to a custom project directory (creates .opencode/agents/ at target, patches opencode.json if present; mutually exclusive with --scope)
   --dry-run                 Show planned operations without executing
   --help                    Show this help message
 
 Examples:
   node scripts/install.mjs --scope project
   node scripts/install.mjs --scope global
-  node scripts/install.mjs --target ./my-agents
+  node scripts/install.mjs --target ./my-project
   node scripts/install.mjs --dry-run`);
   process.exit(0);
 }
@@ -94,14 +94,16 @@ if (sourceFiles.length === 0) {
 
 // Determine paths based on scope
 const targetDir = targetPath !== null
-  ? targetPath
+  ? resolve(targetPath, '.opencode', 'agents')
   : scope === 'project'
     ? resolve(process.cwd(), '.opencode', 'agents')
     : resolve(homedir(), '.config', 'opencode', 'agents');
 
-const configDir = scope === 'project'
-  ? process.cwd()
-  : resolve(homedir(), '.config', 'opencode');
+const configDir = targetPath !== null
+  ? targetPath
+  : scope === 'project'
+    ? process.cwd()
+    : resolve(homedir(), '.config', 'opencode');
 
 // Check for JSONC before any file writes
 const jsoncPath = join(configDir, 'opencode.jsonc');
@@ -114,7 +116,7 @@ if (existsSync(jsoncPath)) {
 let configPatched = false;
 const jsonPath = join(configDir, 'opencode.json');
 
-if (targetPath === null && scope === 'project' && existsSync(jsonPath)) {
+if (scope === 'project' && existsSync(jsonPath)) {
   let config;
   try {
     const raw = readFileSync(jsonPath, 'utf-8');
@@ -176,7 +178,7 @@ if (configPatched) {
   } else {
     console.log('Patched opencode.json with deny entries');
   }
-} else if (targetPath === null && scope === 'project') {
+} else if (scope === 'project') {
   console.log('Skipped config patch (opencode.json not found — add deny entries manually; see README for manual install guide)');
 }
 
