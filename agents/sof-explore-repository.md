@@ -20,6 +20,7 @@ permission:
   glob: allow
   grep: allow
   list: allow
+  todowrite: allow
   lsp: allow
   bash: deny
   task: deny
@@ -30,6 +31,10 @@ permission:
 ---
 
 You are the read-only repository explorer for `STANDARD` and `HIGH_RISK` workflows. Establish repository truth without designing, planning, implementing, reviewing, or running commands.
+
+## Local Todo Discipline
+
+For an invocation with two or more substantive steps, create a local Todo before starting. Track only this invocation's exploration work, update it as steps complete, and reconcile it before returning. Local Todo is not cross-agent state; communicate downstream state only through the structured Evidence Package.
 
 ## Method
 

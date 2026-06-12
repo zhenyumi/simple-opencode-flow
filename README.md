@@ -67,6 +67,9 @@ If execution reveals facts that invalidate the current profile, Flow stops execu
 - **User-locked mechanisms and artifacts**: when the user explicitly names a delivery mechanism or artifact, agents preserve it as a locked constraint. Infeasible choices block with an explanation; potentially better alternatives are presented for user decision and are never adopted silently.
 - **On-demand external context**: agents load skills and authoritative web sources only to resolve a concrete, material information or evidence gap, not routinely or for completeness.
 - **Independent repository-state review**: code review and release audit use read-only Git commands to establish actual scope instead of trusting implementer reports alone.
+- **Pure orchestration**: Flow may read minimum necessary context to route work and construct handoffs, but every substantive answer, analysis, synthesis, and specialized-gate result comes from a subagent. Flow reports only orchestration status and permitted blockers itself.
+- **Delegation-first capability reasoning**: Flow resolves required capabilities through authorized agents before reporting a capability gap; Flow's own missing tools are expected and never sufficient reason to stop.
+- **No early return with a callable gate**: when the workflow has a callable next gate, Flow updates progress and delegates it before responding to the user.
 
 ## Capabilities And Native Fallback
 
@@ -91,6 +94,60 @@ When a custom agent cannot continue within its permissions, it returns a compact
 
 Native fallback output is input only: the responsible SOF agent must validate and incorporate it, and it can never serve directly as plan approval, code approval, verification, or audit receipt. Native `general` never replaces a formal SOF gate and cannot perform or repair work after execution approval or during code review, verification, or audit.
 
+Flow distinguishes three questions before reporting a limitation:
+
+- **Capability**: does an available tool or agent provide the required operation?
+- **Authorization**: may that role perform the operation in the current gate and scope?
+- **Availability**: can the authorized role currently be invoked?
+
+Flow first resolves the responsible focused agent, then an allowed fallback where permitted. It reports `BLOCKED` only when no authorized and available delegate exists, a mandatory gate forbids delegation, or user/permission input is required. Flow never treats its own missing tool as sufficient evidence that the workflow lacks the capability.
+
+For substantive work, Flow checks whether it can invoke the responsible delegate through Task; it does not inventory its own specialized tools to decide whether the requested outcome is possible.
+
+A blocked report identifies the required capability, delegates considered, and the concrete authorization or availability blocker. It does not report Flow's personal tool limitations.
+
+## Information Routing
+
+Flow is a pure orchestrator and context manager. It may read the minimum repository context needed to classify a request, choose an agent, construct a self-contained handoff, validate a receipt, or recover workflow state. It never uses that read access to answer or perform specialized work itself.
+
+Informational requests are delegated by capability:
+
+Every delegated informational task is focused and non-mutating.
+
+| Request | Default route |
+| --- | --- |
+| Precise local read-only search, symbol location, or narrow lookup | native `explore` |
+| Cross-file explanation, general local question, or repository analysis | native `general` |
+| Authoritative external documentation, standards, or a named URL | `sof-research-source` |
+| Dependency source, managed cache, or upstream implementation research | native `scout`, otherwise `general` |
+| Multi-source question | focused agents, then native `general` for synthesis |
+
+Flow may relay one complete subagent answer with light formatting. It delegates substantive synthesis to `general`. A mixed request containing any change, plan, execution, review, or verification intent always enters the workflow route.
+
+## State And Todo
+
+- `state.md` is the durable workflow-navigation and gate-receipt authority.
+- Flow's global Todo is the user-visible current-session projection of workflow gates.
+- Each `sof-*` subagent may maintain a local Todo for its own multi-step invocation.
+- Local Todo never carries state between agents; structured receipts and authoritative artifacts do.
+- Flow rebuilds global Todo from `state.md` after context recovery and synchronizes it before every permitted workflow response.
+
+| Current state or input | Required Flow action | May respond to user |
+| --- | --- | --- |
+| New informational request | Delegate to the best-fit answer agent; use `general` for required synthesis | After delegated answer completes |
+| New workflow or mixed request | Create Todo, select profile, invoke first planning gate | No |
+| Requested outcome requires a specialized capability | Resolve and invoke the authorized responsible agent | No |
+| Callable next gate | Update Todo and invoke it immediately | No |
+| `CAPABILITY_GAP` | Route fallback and resume original gate | Only if unresolved |
+| Plan `CHANGES_REQUESTED` | Delegate revision to `sof-write-plan`, then rerun review | No |
+| Plan `APPROVED` | Persist receipt and await explicit execution approval | Yes |
+| Approved execution with incomplete work | Continue implementation and required reviews | No |
+| All implementation units complete | Invoke integrated `sof-review-code` | No |
+| Integrated review approved | Invoke release verification | No |
+| `VERIFIED` | Complete Todo and return verified result | Yes |
+| `BLOCKED`, permission request, or owner decision | Persist blocker and block active Todo | Yes |
+| Explicit audit request | Invoke audit after verification | After audit completes |
+
 ## Terminology
 
 - **Subagent invocation**: one focused-agent call made by `flow`.
@@ -105,7 +162,7 @@ Native fallback output is input only: the responsible SOF agent must validate an
 
 | Agent | Role |
 | --- | --- |
-| `flow` | Select the workflow profile, route gates, and maintain compact `state.md` receipts |
+| `flow` | Pure orchestrator and context manager for request routing, handoffs, global Todo, gates, and compact `state.md` receipts |
 | `sof-research-source` | Read authoritative external sources for standalone questions or concrete planning evidence gaps |
 | `sof-explore-repository` | Collect compact repository evidence for Standard and High Risk planning |
 | `sof-design-change` | Define the smallest evidence-backed Standard or High Risk design |
@@ -196,8 +253,8 @@ Within the same session, `flow` distinguishes:
 - **Revise current plan**: update the same plan directory and review again.
 - **Create follow-up plan**: create and independently approve a new plan.
 
-Flow automatically selects `STREAMLINED`, `STANDARD`, or `HIGH_RISK`, records the choice in `state.md`, and restores interrupted workflows from the three sibling artifacts. It edits only the active plan's `state.md` and never runs shell commands.
+Flow automatically selects `STREAMLINED`, `STANDARD`, or `HIGH_RISK`, records the choice in `state.md`, projects the active route into global Todo, and restores interrupted workflows from the three sibling artifacts. It may read minimum necessary context for routing and handoff integrity, edits only the active plan's `state.md`, and never runs shell commands or performs a subagent's substantive work.
 
-For ordinary factual or documentation questions, Flow does not start a planning workflow. It answers local questions with read-only access, delegates named websites or authoritative external sources to `sof-research-source`, and uses native fallback agents only for focused capability gaps. External research is never routed to the local-only repository explorer.
+For ordinary factual or documentation questions, Flow does not start a planning workflow. It delegates local questions to the best-fit native subagent, external authoritative questions to `sof-research-source`, and multi-source synthesis to `general`. External research is never routed to the local-only repository explorer.
 
 `sof-implement-task` intentionally has broad Build-level capabilities, including configured MCP/custom tools. `sof-verify-release` has broad Bash capability but no Web, LSP, or MCP/custom-tool access. Their approved contracts limit what they may do. No custom agent commits, pushes, publishes, or performs a release action.
