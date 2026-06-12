@@ -114,6 +114,7 @@ This stage begins at `CHANGE selected` and produces the approved execution bound
 ```mermaid
 flowchart TD
     subgraph PLANNING["Planning and approval stage"]
+        direction TB
         C["CHANGE selected"] --> P{"Profile"}
         P -- "STREAMLINED" --> W["sof-write-plan"]
         P -- "STANDARD / HIGH_RISK" --> E["sof-explore-repository"]
@@ -135,6 +136,7 @@ This stage continues from the approved execution boundary. A requested post-veri
 ```mermaid
 flowchart TD
     subgraph EXECUTION["Execution and verification stage"]
+        direction TB
         X["Approved plan + execution approval"] --> I["Implement approved units<br/>+ required unit reviews"]
         I --> IR["sof-review-code<br/>integrated review"]
         IR -- "Changes requested" --> I
