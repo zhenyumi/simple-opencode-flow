@@ -130,13 +130,13 @@ node scripts/install.mjs --scope global
 # Dry-run (preview without changes)
 node scripts/install.mjs --dry-run
 
-# Custom project directory install (creates .opencode/agents/ at target with config patching)
+# Custom project directory install (creates .opencode/agents/ at target; patches or creates opencode.json)
 node scripts/install.mjs --target ./my-project
 ```
 
 The installer:
 - Copies all agent `.md` files from `agents/` to the target directory
-- Patches `opencode.json` with required permission deny entries (project scope only)
+- Patches or creates `opencode.json` with required permission deny entries (project and target scope only)
 - Detects JSONC configuration and exits with error (JSONC is not supported)
 - Preserves existing files in the target directory
 
@@ -172,7 +172,7 @@ If you cannot or prefer not to run the installer script:
      }
    }
    ```
-   Skip this step if you don't have an `opencode.json` yet. Create one first if needed.
+   The installer handles this automatically for project and target installs.
 
 **Note**: The `agents/` directory in this repository is the canonical distribution source. The `.opencode/` directory is a local OpenCode work directory and should not be used for distribution.
 

@@ -112,21 +112,12 @@ if (existsSync(jsoncPath)) {
   process.exit(1);
 }
 
-// Config patching (project scope only)
+// Config patching/creation (project scope and --target only)
 let configPatched = false;
+let configCreated = false;
 const jsonPath = join(configDir, 'opencode.json');
 
-if (scope === 'project' && existsSync(jsonPath)) {
-  let config;
-  try {
-    const raw = readFileSync(jsonPath, 'utf-8');
-    config = JSON.parse(raw);
-  } catch (e) {
-    console.error(`Error: Invalid JSON in ${jsonPath}: ${e.message}`);
-    process.exit(1);
-  }
-
-  // Deep merge deny entries
+if (scope === 'project' || targetPath !== null) {
   const denyEntries = [
     ['agent', 'build', 'permission', 'task', 'sof-*'],
     ['agent', 'build', 'permission', 'task', 'flow'],
@@ -134,25 +125,56 @@ if (scope === 'project' && existsSync(jsonPath)) {
     ['agent', 'plan', 'permission', 'task', 'flow'],
   ];
 
-  for (const path of denyEntries) {
-    let current = config;
-    for (let i = 0; i < path.length - 1; i++) {
-      const key = path[i];
-      if (current[key] === undefined) {
-        current[key] = {};
-      } else if (typeof current[key] !== 'object' || current[key] === null) {
-        console.error(`Error: Non-object value at path "${path.slice(0, i + 1).join('.')}" in ${jsonPath}`);
-        process.exit(1);
-      }
-      current = current[key];
+  if (existsSync(jsonPath)) {
+    let config;
+    try {
+      const raw = readFileSync(jsonPath, 'utf-8');
+      config = JSON.parse(raw);
+    } catch (e) {
+      console.error(`Error: Invalid JSON in ${jsonPath}: ${e.message}`);
+      process.exit(1);
     }
-    current[path[path.length - 1]] = 'deny';
-  }
 
-  if (!dryRun) {
-    writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
+    for (const path of denyEntries) {
+      let current = config;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (current[key] === undefined) {
+          current[key] = {};
+        } else if (typeof current[key] !== 'object' || current[key] === null) {
+          console.error(`Error: Non-object value at path "${path.slice(0, i + 1).join('.')}" in ${jsonPath}`);
+          process.exit(1);
+        }
+        current = current[key];
+      }
+      current[path[path.length - 1]] = 'deny';
+    }
+
+    if (!dryRun) {
+      writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
+    }
+    configPatched = true;
+  } else {
+    const config = {};
+
+    for (const path of denyEntries) {
+      let current = config;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (current[key] === undefined) {
+          current[key] = {};
+        }
+        current = current[key];
+      }
+      current[path[path.length - 1]] = 'deny';
+    }
+
+    if (!dryRun) {
+      mkdirSync(configDir, { recursive: true });
+      writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
+    }
+    configCreated = true;
   }
-  configPatched = true;
 }
 
 // Copy files
@@ -171,15 +193,19 @@ for (const file of sourceFiles) {
   }
 }
 
-// Report config patch status
+// Report config status
 if (configPatched) {
   if (dryRun) {
     console.log('[DRY-RUN] Patched opencode.json with deny entries');
   } else {
     console.log('Patched opencode.json with deny entries');
   }
-} else if (scope === 'project') {
-  console.log('Skipped config patch (opencode.json not found — add deny entries manually; see README for manual install guide)');
+} else if (configCreated) {
+  if (dryRun) {
+    console.log('[DRY-RUN] Created opencode.json with deny entries');
+  } else {
+    console.log('Created opencode.json with deny entries');
+  }
 }
 
 process.exit(0);
