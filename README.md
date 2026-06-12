@@ -8,94 +8,53 @@ The canonical distribution source is the `agents/` directory in this repository.
 
 ```mermaid
 flowchart TD
-    U["User request"] --> F["flow<br/><br/>choose the next workflow step"]
+    U["User request"] --> F{"flow selects profile"}
+    F -- "STREAMLINED" --> W["sof-write-plan<br/>targeted inspection + one unit"]
+    F -- "STANDARD" --> E["sof-explore-repository"] --> D["sof-design-change"] --> W
+    F -- "HIGH_RISK" --> HE["complete risk-focused exploration"] --> HD["risk-focused design"] --> W
 
-    F -- "start or continue workflow" --> E
+    W --> A[["plan.md + evidence.md + state.md"]]
+    A --> RP["sof-review-plan<br/>approve exact plan/evidence tuple"]
+    RP -- "revise within review budget" --> W
+    RP -- "approved + user authorizes execution" --> I["sof-implement-task<br/>one approved unit"]
 
-    subgraph PLANPHASE["Planning phase"]
-        direction TB
+    I --> UR{"Early review required?"}
+    UR -- "yes" --> RC["sof-review-code<br/>implementation-unit review"] --> I
+    UR -- "no / all units complete" --> IR["sof-review-code<br/>required integrated review"]
+    IR -- "fix findings" --> I
+    IR -- "approved" --> V["sof-verify-release<br/>required fresh verification"]
+    V -- "verified" --> DONE["Verified result"]
+    V -- "explicit release/audit request" --> AR["sof-audit-release<br/>fresh state comparison"]
+    AR --> READY["Release-ready or BLOCKED"]
 
-        E["sof-explore-repository<br/><br/>learn what the requested change depends on"]
-        EV[["evidence.md<br/><br/>records inspected sources,<br/>facts, constraints, risks, and unknowns"]]
-        D["sof-design-change<br/><br/>choose an approach supported by evidence"]
-        W["sof-write-plan<br/><br/>turn the approved design into implementation units"]
-        PLAN[["plan.md<br/><br/>defines exactly what may be executed"]]
-        RP["sof-review-plan<br/><br/>approve the exact plan + evidence tuple"]
-
-        E -- "records discovered evidence" --> EV
-        EV -- "supports design decisions" --> D
-        D -- "approved design input" --> W
-        W -- "writes execution authority" --> PLAN
-        W -- "updates evidence record<br/>without inventing new evidence" --> EV
-        PLAN -- "review execution scope" --> RP
-        EV -- "review evidence coverage<br/>and source access" --> RP
-    end
-
-    RP -- "revise plan or evidence" --> W
-    RP -- "approved exact tuple" --> A["Wait for explicit execution approval"]
-
-    A -- "user approves execution" --> I
-
-    subgraph EXECPHASE["Execution phase"]
-        direction TB
-
-        I["sof-implement-task<br/><br/>perform one approved implementation unit"]
-        IE[["Implementation evidence<br/><br/>records what happened during the unit"]]
-        UR{"Evidence requires<br/>early independent review?"}
-        RC["sof-review-code<br/><br/>implementation-unit review"]
-        IR["sof-review-code<br/><br/>integrated review"]
-
-        I -- "records implementation result" --> IE
-        IE --> UR
-    end
-
-    UR -- "yes" --> RC
-    UR -- "no, defer coverage" --> I
-    RC -- "fix implementation unit" --> I
-    RC -- "continue implementation units" --> I
-    I -- "all implementation units finished" --> IR
-    IR -- "fix integrated findings" --> I
-    IR -- "approved" --> V
-
-    subgraph RELEASEPHASE["Release phase"]
-        direction TB
-
-        V["sof-verify-release<br/><br/>run only the approved verification commands"]
-        VE[["Verification evidence<br/><br/>records final check results"]]
-        AR["sof-audit-release<br/><br/>explicit release-action audit"]
-
-        V -- "records verification result" --> VE
-        VE -- "normal verified result" --> DONE["Verified result"]
-        VE -- "user explicitly requests<br/>commit, publish, release, or audit" --> AR
-    end
-
-    AR -- "blocked by audit" --> B["BLOCKED"]
-    AR -- "release audit passed" --> READY["Release-ready result"]
-
-    F -. "same-session handoff<br/><br/>helps continue the conversation<br/>but is not an authority" .-> U
-
-    subgraph RULES["Rules that govern every phase"]
-        direction TB
-
-        R1["Evidence before decisions<br/><br/>do not design from guesses"]
-        R2["Read sources before citing them<br/><br/>links and filenames are not evidence"]
-        R3["Minimum sufficient complexity<br/><br/>avoid unnecessary files, checks, and abstractions"]
-        R4["Exact approval before execution<br/><br/>only the approved tuple can be implemented"]
-    end
-
-    RULES -. "governs" .-> PLANPHASE
-    RULES -. "governs" .-> EXECPHASE
-    RULES -. "governs" .-> RELEASEPHASE
-
+    F -. "updates compact durable receipts" .-> A
 ```
 
-Planning produces two authoritative artifacts:
+Every plan directory contains two authoritative artifacts and one compact workflow-state artifact:
 
 ```text
 .opencode/plans/YYYY-MM-DD-<slug>/
 ├── plan.md
-└── evidence.md
+├── evidence.md
+└── state.md
 ```
+
+- `plan.md` and its revision are the sole execution authority.
+- `evidence.md` is the repository-evidence and Source Access Integrity authority.
+- `state.md` records the workflow profile, current phase, approval/review/verification receipts, blocker, and next gate. It is not execution or evidence authority and is not part of the plan/evidence approval hash tuple.
+- Flow's expected updates to the active `state.md` are excluded from implementation-scope and post-verification comparisons only for that exact workflow-metadata file; every other unexplained change still blocks.
+
+## Workflow Profiles
+
+| Profile | Use when | Planning route | Early implementation-unit review |
+| --- | --- | --- | --- |
+| `STREAMLINED` | One clear low-risk unit with known scope and no material unknowns or shared/high-risk behavior | `sof-write-plan` performs targeted inspection, then independent plan review | None; integrated review is still required |
+| `STANDARD` | Normal changes that do not qualify as Streamlined or High Risk | Repository exploration, design, plan writing, and plan review | Required only when evidence or dependencies justify it |
+| `HIGH_RISK` | Security, privacy, permissions, migrations, irreversible operations, public/shared contracts, dependencies, data formats, or material unknowns | Complete risk-focused planning route | Required for every risk-related or dependency-foundational unit |
+
+When Streamlined planning discovers ambiguity or risk, it escalates before creating artifacts. Independent plan review, integrated code review, and release verification are mandatory for every profile.
+
+If execution reveals facts that invalidate the current profile, Flow stops execution, revises the profile in all three artifacts, and requires a new plan/evidence approval tuple before continuing.
 
 ## Core Invariants
 
@@ -103,32 +62,34 @@ Planning produces two authoritative artifacts:
 - **Source access integrity**: a URL, citation, path, package, skill, or reference title is not evidence unless the relevant content was actually accessed and read.
 - **Approval before execution**: implementation requires independent approval of the exact plan/evidence path, revision, and SHA-256 tuple.
 - **Minimum sufficient complexity**: evidence, validation, artifacts, dependencies, abstractions, and review steps must be sufficient for the approved scope, not exhaustive by default.
+- **Durable compact receipts**: Flow persists only downstream-required workflow state in sibling `state.md`; recoverable artifact content and historical transcripts are not copied into handoffs.
+- **Bounded automatic review**: each plan-review loop allows three attempts, and material-basis restarts still count toward a maximum of five automatic plan-review calls per user-authorized review cycle.
 - **User-locked mechanisms and artifacts**: when the user explicitly names a delivery mechanism or artifact, agents preserve it as a locked constraint. Infeasible choices block with an explanation; potentially better alternatives are presented for user decision and are never adopted silently.
 - **On-demand external context**: agents load skills and authoritative web sources only to resolve a concrete, material information or evidence gap, not routinely or for completeness.
-- **Evidence-driven review routing**: repository exploration records risks and dependencies; Flow uses that evidence to require early review only for implementation units that need it, while integrated review always covers the complete change.
-- **Relevant self-contained handoffs**: each subagent invocation receives every input required by its gate, while recoverable authoritative content is referenced rather than copied and unrelated historical output is omitted.
+- **Independent repository-state review**: code review and release audit use read-only Git commands to establish actual scope instead of trusting implementer reports alone.
 
 ## Terminology
 
 - **Subagent invocation**: one focused-agent call made by `flow`.
-- **Planning gate**: repository exploration, design, plan writing, or plan review.
 - **Implementation unit**: one executable item in the approved `plan.md`.
 - **Implementation-unit review**: early independent code review of one completed implementation unit when evidence requires it.
 - **Integrated review**: independent review of the complete implemented change after all implementation units finish.
+- **Review cycle**: a user-authorized automatic plan-review budget containing at most five review calls.
+- **Trusted executor**: an agent with broad capabilities whose authorization remains limited by the approved plan and behavioral contract.
 
 ## Agents
 
 | Agent | Role |
 | --- | --- |
-| `flow` | Primary workflow router and gatekeeper |
-| `sof-explore-repository` | Collect repository evidence |
-| `sof-design-change` | Define design decisions and acceptance criteria |
-| `sof-write-plan` | Create or revise `plan.md` and `evidence.md` |
+| `flow` | Select the workflow profile, route gates, and maintain compact `state.md` receipts |
+| `sof-explore-repository` | Collect compact repository evidence for Standard and High Risk planning |
+| `sof-design-change` | Define the smallest evidence-backed Standard or High Risk design |
+| `sof-write-plan` | Create or revise planning artifacts and initialize `state.md` |
 | `sof-review-plan` | Independently review and approve exact plan/evidence revisions |
-| `sof-implement-task` | Implement one approved implementation unit |
-| `sof-review-code` | Perform implementation-unit or integrated review |
-| `sof-verify-release` | Run fresh release verification |
-| `sof-audit-release` | Audit evidence only for an explicitly requested release action |
+| `sof-implement-task` | Trusted Build-level executor for one approved implementation unit |
+| `sof-review-code` | Independently inspect actual repository changes and perform unit or integrated review |
+| `sof-verify-release` | Trusted verification executor that runs only approved release commands |
+| `sof-audit-release` | Audit an explicit release action using receipts and fresh repository state |
 
 ## Install
 
@@ -210,4 +171,6 @@ Within the same session, `flow` distinguishes:
 - **Revise current plan**: update the same plan directory and review again.
 - **Create follow-up plan**: create and independently approve a new plan.
 
-`flow` never edits files or runs shell commands itself. Implementation does not commit, push, or publish unless the collection is intentionally modified to permit it.
+Flow automatically selects `STREAMLINED`, `STANDARD`, or `HIGH_RISK`, records the choice in `state.md`, and restores interrupted workflows from the three sibling artifacts. It edits only the active plan's `state.md` and never runs shell commands.
+
+`sof-implement-task` and `sof-verify-release` intentionally have broad Build-level and verification capabilities, respectively. Their approved contracts limit what they may do. No custom agent commits, pushes, publishes, or performs a release action.
