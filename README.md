@@ -1,8 +1,8 @@
-# OpenCode Flow Agents
+# Simple OpenCode Flow (SOF) Agents
 
-A small native OpenCode agent collection for evidence-based planning, gated implementation, independent review, and release audit.
+A native OpenCode Markdown agent distribution for evidence-based planning, gated implementation, independent review, and release audit. Installed via `scripts/install.mjs` with zero external dependencies.
 
-The agents live in `.opencode/agents/`, the native project-local OpenCode agent directory. No plugin or external runtime is required.
+The canonical distribution source is the `agents/` directory in this repository. The `.opencode/` directory is a local OpenCode work directory, not the distribution source.
 
 ## Workflow
 
@@ -15,12 +15,12 @@ flowchart TD
     subgraph PLANPHASE["Planning phase"]
         direction TB
 
-        E["explore-repository<br/><br/>learn what the project and task depend on"]
+        E["sof-explore-repository<br/><br/>learn what the requested change depends on"]
         EV[["evidence.md<br/><br/>records inspected sources,<br/>facts, constraints, risks, and unknowns"]]
-        D["design-change<br/><br/>choose an approach supported by evidence"]
-        W["write-plan<br/><br/>turn the approved design into executable tasks"]
+        D["sof-design-change<br/><br/>choose an approach supported by evidence"]
+        W["sof-write-plan<br/><br/>turn the approved design into implementation units"]
         PLAN[["plan.md<br/><br/>defines exactly what may be executed"]]
-        RP["review-plan<br/><br/>approve the exact plan + evidence tuple"]
+        RP["sof-review-plan<br/><br/>approve the exact plan + evidence tuple"]
 
         E -- "records discovered evidence" --> EV
         EV -- "supports design decisions" --> D
@@ -39,31 +39,38 @@ flowchart TD
     subgraph EXECPHASE["Execution phase"]
         direction TB
 
-        I["implement-task<br/><br/>perform one approved task"]
-        TE[["Task evidence<br/><br/>records what happened during this task"]]
-        RC["review-code<br/><br/>check scope, quality, and evidence"]
+        I["sof-implement-task<br/><br/>perform one approved implementation unit"]
+        IE[["Implementation evidence<br/><br/>records what happened during the unit"]]
+        UR{"Evidence requires<br/>early independent review?"}
+        RC["sof-review-code<br/><br/>implementation-unit review"]
+        IR["sof-review-code<br/><br/>integrated review"]
 
-        I -- "records task result" --> TE
-        TE -- "review implementation evidence" --> RC
+        I -- "records implementation result" --> IE
+        IE --> UR
     end
 
-    RC -- "fix current task" --> I
-    RC -- "next approved task" --> I
-    RC -- "all tasks approved" --> V
+    UR -- "yes" --> RC
+    UR -- "no, defer coverage" --> I
+    RC -- "fix implementation unit" --> I
+    RC -- "continue implementation units" --> I
+    I -- "all implementation units finished" --> IR
+    IR -- "fix integrated findings" --> I
+    IR -- "approved" --> V
 
     subgraph RELEASEPHASE["Release phase"]
         direction TB
 
-        V["verify-release<br/><br/>run only the approved verification commands"]
+        V["sof-verify-release<br/><br/>run only the approved verification commands"]
         VE[["Verification evidence<br/><br/>records final check results"]]
-        AR["audit-release<br/><br/>final release-readiness audit"]
+        AR["sof-audit-release<br/><br/>explicit release-action audit"]
 
         V -- "records verification result" --> VE
-        VE -- "audit final evidence" --> AR
+        VE -- "normal verified result" --> DONE["Verified result"]
+        VE -- "user explicitly requests<br/>commit, publish, release, or audit" --> AR
     end
 
     AR -- "blocked by audit" --> B["BLOCKED"]
-    AR -- "release audit passed" --> DONE["Release-ready result"]
+    AR -- "release audit passed" --> READY["Release-ready result"]
 
     F -. "same-session handoff<br/><br/>helps continue the conversation<br/>but is not an authority" .-> U
 
@@ -96,36 +103,92 @@ Planning produces two authoritative artifacts:
 - **Source access integrity**: a URL, citation, path, package, skill, or reference title is not evidence unless the relevant content was actually accessed and read.
 - **Approval before execution**: implementation requires independent approval of the exact plan/evidence path, revision, and SHA-256 tuple.
 - **Minimum sufficient complexity**: evidence, validation, artifacts, dependencies, abstractions, and review steps must be sufficient for the approved scope, not exhaustive by default.
+- **User-locked mechanisms and artifacts**: when the user explicitly names a delivery mechanism or artifact, agents preserve it as a locked constraint. Infeasible choices block with an explanation; potentially better alternatives are presented for user decision and are never adopted silently.
+- **On-demand external context**: agents load skills and authoritative web sources only to resolve a concrete, material information or evidence gap, not routinely or for completeness.
+- **Evidence-driven review routing**: repository exploration records risks and dependencies; Flow uses that evidence to require early review only for implementation units that need it, while integrated review always covers the complete change.
+- **Relevant self-contained handoffs**: each subagent invocation receives every input required by its gate, while recoverable authoritative content is referenced rather than copied and unrelated historical output is omitted.
+
+## Terminology
+
+- **Subagent invocation**: one focused-agent call made by `flow`.
+- **Planning gate**: repository exploration, design, plan writing, or plan review.
+- **Implementation unit**: one executable item in the approved `plan.md`.
+- **Implementation-unit review**: early independent code review of one completed implementation unit when evidence requires it.
+- **Integrated review**: independent review of the complete implemented change after all implementation units finish.
 
 ## Agents
 
 | Agent | Role |
 | --- | --- |
 | `flow` | Primary workflow router and gatekeeper |
-| `explore-repository` | Collect repository evidence |
-| `design-change` | Define design decisions and acceptance criteria |
-| `write-plan` | Create or revise `plan.md` and `evidence.md` |
-| `review-plan` | Independently review and approve exact plan/evidence revisions |
-| `implement-task` | Implement one approved task |
-| `review-code` | Review implementation against the approved plan |
-| `verify-release` | Run fresh release verification |
-| `audit-release` | Perform the final evidence-only release audit |
+| `sof-explore-repository` | Collect repository evidence |
+| `sof-design-change` | Define design decisions and acceptance criteria |
+| `sof-write-plan` | Create or revise `plan.md` and `evidence.md` |
+| `sof-review-plan` | Independently review and approve exact plan/evidence revisions |
+| `sof-implement-task` | Implement one approved implementation unit |
+| `sof-review-code` | Perform implementation-unit or integrated review |
+| `sof-verify-release` | Run fresh release verification |
+| `sof-audit-release` | Audit evidence only for an explicitly requested release action |
 
 ## Install
 
-Copy `.opencode/agents/` into the root of the target repository:
+Install agents using the zero-dependency `scripts/install.mjs` installer:
 
 ```bash
-mkdir -p /path/to/project/.opencode
-cp -R .opencode/agents /path/to/project/.opencode/
+# Project-level install (copies agents to .opencode/agents/)
+node scripts/install.mjs --scope project
+
+# Global install (copies agents to ~/.config/opencode/agents/)
+node scripts/install.mjs --scope global
+
+# Dry-run (preview without changes)
+node scripts/install.mjs --dry-run
+
+# Custom directory install (copies agents to specified path)
+node scripts/install.mjs --target ./my-agents
 ```
 
-Verify discovery:
+The installer:
+- Copies all agent `.md` files from `agents/` to the target directory
+- Patches `opencode.json` with required permission deny entries (project scope only)
+- Detects JSONC configuration and exits with error (JSONC is not supported)
+- Preserves existing files in the target directory
 
-```bash
-cd /path/to/project
-opencode agent list --pure
-```
+### Manual Installation
+
+If you cannot or prefer not to run the installer script:
+
+1. **Copy agent files** from `agents/` to your OpenCode agents directory:
+   - **Project-level:** `<project>/.opencode/agents/`
+   - **Global:** `~/.config/opencode/agents/`
+   - **Custom:** any directory of your choice
+
+2. **(Optional) Configure deny entries** in your project's `opencode.json`:
+   ```json
+   {
+     "agent": {
+       "build": {
+         "permission": {
+           "task": {
+             "sof-*": "deny",
+             "flow": "deny"
+           }
+         }
+       },
+       "plan": {
+         "permission": {
+           "task": {
+             "sof-*": "deny",
+             "flow": "deny"
+           }
+         }
+       }
+     }
+   }
+   ```
+   Skip this step if you don't have an `opencode.json` yet. Create one first if needed.
+
+**Note**: The `agents/` directory in this repository is the canonical distribution source. The `.opencode/` directory is a local OpenCode work directory and should not be used for distribution.
 
 ## Use
 
@@ -135,7 +198,7 @@ Select the `flow` primary agent in OpenCode, then describe the goal and constrai
 Create a reviewed implementation plan for <goal>. Plan only; do not execute.
 ```
 
-After `review-plan` approves the exact plan/evidence tuple, explicitly authorize execution:
+After `sof-review-plan` approves the exact plan/evidence tuple, explicitly authorize execution:
 
 ```text
 Approve execution of the current approved plan.
