@@ -64,18 +64,20 @@ Approve execution of the current approved plan.
 
 Flow prefers one sufficient delegate. It uses multiple agents only when capabilities, independence, or risk require them. An active `CHANGE` workflow takes precedence over new operations, and a verified change is audited before a requested release operation is executed.
 
-### 1. Request Routing
+### Request Routing
 
-This first view selects the route. The `CHANGE selected` boundary continues in the next diagram.
+This stage selects the route. The `CHANGE selected` boundary continues into planning and approval.
 
 ```mermaid
 flowchart LR
-    U["User request"] --> R{"Select route"}
-    R -- "No side effects" --> A["ANSWER<br/>read-only delegate"]
-    R -- "Exact bounded side effect" --> O["OPERATION<br/>Todo + exact contract"]
-    R -- "Project content or behavior changes" --> C["CHANGE selected<br/>(continue to diagram 2)"]
-    A --> AR["Answer"]
-    O --> OR["Operation result"]
+    subgraph ROUTING["Routing stage"]
+        U["User request"] --> R{"Select route"}
+        R -- "No side effects" --> A["ANSWER<br/>read-only delegate"]
+        R -- "Exact bounded side effect" --> O["OPERATION<br/>Todo + exact contract"]
+        R -- "Project content or behavior changes" --> C["CHANGE selected"]
+        A --> AR["Answer"]
+        O --> OR["Operation result"]
+    end
 ```
 
 ## Safety Principles
@@ -105,46 +107,48 @@ Every `CHANGE` uses a profile matched to its scope and risk:
 
 When Streamlined planning discovers ambiguity or risk, it escalates before creating artifacts. If execution invalidates the current profile, Flow stops, revises the artifacts, and requires approval of a new exact tuple.
 
-### 2. Plan And Approve
+### Plan And Approve
 
-This view begins at `CHANGE selected` from diagram 1 and ends at the execution boundary used by diagram 3.
-
-```mermaid
-flowchart LR
-    C["CHANGE selected<br/>(from diagram 1)"] --> P{"Select profile"}
-    P -- "STREAMLINED" --> W["sof-write-plan<br/>targeted inspection"]
-    P -- "STANDARD / HIGH_RISK" --> E["sof-explore-repository"] --> D["sof-design-change"] --> W
-    W --> A[["plan.md + evidence.md + state.md"]]
-    A --> R["sof-review-plan"]
-    R -- "Revise within review budget" --> W
-    R -- "Approved" --> U{"User approves exact tuple?"}
-    U -- "Not yet" --> WAIT["Await approval"]
-    U -- "Yes" --> X["Approved plan + execution approval<br/>(continue to diagram 3)"]
-```
-
-### 3. Execute And Verify
-
-This view continues from the approved execution boundary in diagram 2. A requested post-verification operation is audited before native `general` receives its exact Operation Contract.
+This stage begins at `CHANGE selected` and produces the approved execution boundary.
 
 ```mermaid
 flowchart TD
-    X["Approved plan + execution approval<br/>(from diagram 2)"] --> I["sof-implement-task<br/>one approved unit"]
-    I --> E{"Early review required?"}
-    E -- "Yes" --> UR["sof-review-code<br/>unit review"]
-    E -- "No" --> M{"More approved units?"}
-    UR -- "Approved" --> M
-    UR -- "Changes requested" --> I
-    M -- "Yes" --> I
-    M -- "No" --> IR["sof-review-code<br/>integrated review"]
-    IR -- "Changes requested" --> I
-    IR -- "Approved" --> V["sof-verify-release"]
-    V -- "VERIFIED" --> DONE["Verified result"]
-    V -- "BLOCKED" --> B["BLOCKED"]
-    DONE -- "Explicit audit or operation request" --> AU["sof-audit-release"]
-    AU -- "PASS + operation requested" --> O["Exact OPERATION<br/>native general"]
-    AU -- "PASS, audit only" --> PASS["Audit PASS"]
-    AU -- "BLOCKED" --> B
+    subgraph PLANNING["Planning and approval stage"]
+        C["CHANGE selected"] --> P{"Profile"}
+        P -- "STREAMLINED" --> W["sof-write-plan"]
+        P -- "STANDARD / HIGH_RISK" --> E["sof-explore-repository"]
+        E --> D["sof-design-change"]
+        D --> W
+        W --> A[["Planning artifacts"]]
+        A --> R["sof-review-plan"]
+        R -- "Changes requested" --> W
+        R -- "Approved" --> U{"Execution approved?"}
+        U -- "No" --> WAIT["Await user approval"]
+        U -- "Yes" --> X["Approved plan + execution approval"]
+    end
 ```
+
+### Execute And Verify
+
+This stage continues from the approved execution boundary. A requested post-verification operation is audited before native `general` receives its exact Operation Contract.
+
+```mermaid
+flowchart TD
+    subgraph EXECUTION["Execution and verification stage"]
+        X["Approved plan + execution approval"] --> I["Implement approved units<br/>+ required unit reviews"]
+        I --> IR["sof-review-code<br/>integrated review"]
+        IR -- "Changes requested" --> I
+        IR -- "Approved" --> V["sof-verify-release"]
+        V -- "VERIFIED" --> DONE["Verified result"]
+        V -- "BLOCKED" --> B["BLOCKED"]
+        DONE -- "Audit or operation requested" --> AU["sof-audit-release"]
+        AU -- "PASS + operation" --> O["Exact OPERATION"]
+        AU -- "PASS, audit only" --> PASS["Audit PASS"]
+        AU -- "BLOCKED" --> B
+    end
+```
+
+Each approved implementation unit uses a fresh `sof-implement-task` invocation. Early unit review is added when the selected profile, evidence, dependencies, or new implementation findings require it. Changes requested by a unit or integrated review return to implementation before verification.
 
 ### Workflow Artifacts
 
