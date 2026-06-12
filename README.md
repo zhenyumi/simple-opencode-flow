@@ -78,6 +78,7 @@ flowchart LR
         A --> AR["Answer"]
         O --> OR["Operation result"]
     end
+    C -. "Continue" .-> PS["Planning and approval stage"]
 ```
 
 ## Safety Principles
@@ -109,7 +110,7 @@ When Streamlined planning discovers ambiguity or risk, it escalates before creat
 
 ### Plan And Approve
 
-This stage begins at `CHANGE selected` and produces the approved execution boundary.
+This stage begins at `CHANGE selected`, obtains plan approval, and waits for explicit execution authorization.
 
 ```mermaid
 flowchart TD
@@ -123,34 +124,34 @@ flowchart TD
         W --> A[["Planning artifacts"]]
         A --> R["sof-review-plan"]
         R -- "Changes requested" --> W
-        R -- "Approved" --> U{"Execution approved?"}
-        U -- "No" --> WAIT["Await user approval"]
-        U -- "Yes" --> X["Approved plan + execution approval"]
+        R -- "Plan approved" --> WAIT["Await explicit execution approval"]
+        WAIT -- "User authorizes exact tuple" --> X["Execution authorized"]
     end
+    X -. "Continue" .-> ES["Execution and verification stage"]
 ```
 
 ### Execute And Verify
 
-This stage continues from the approved execution boundary. A requested post-verification operation is audited before native `general` receives its exact Operation Contract.
+This stage continues after execution authorization. Verification is required for every `CHANGE`; audit runs only after verification when the user explicitly requests audit or a release operation.
 
 ```mermaid
 flowchart TD
     subgraph EXECUTION["Execution and verification stage"]
         direction TB
-        X["Approved plan + execution approval"] --> I["Implement approved units<br/>+ required unit reviews"]
+        X["Execution authorized"] --> I["Implement approved units<br/>+ required unit reviews"]
         I --> IR["sof-review-code<br/>integrated review"]
         IR -- "Changes requested" --> I
         IR -- "Approved" --> V["sof-verify-release"]
-        V -- "VERIFIED" --> DONE["Verified result"]
+        V -- "VERIFIED" --> DONE["Verified result<br/>(default completion)"]
         V -- "BLOCKED" --> B["BLOCKED"]
-        DONE -- "Audit or operation requested" --> AU["sof-audit-release"]
+        DONE -. "Explicit audit or release operation only" .-> AU["sof-audit-release"]
         AU -- "PASS + operation" --> O["Exact OPERATION"]
         AU -- "PASS, audit only" --> PASS["Audit PASS"]
         AU -- "BLOCKED" --> B
     end
 ```
 
-Each approved implementation unit uses a fresh `sof-implement-task` invocation. Early unit review is added when the selected profile, evidence, dependencies, or new implementation findings require it. Changes requested by a unit or integrated review return to implementation before verification.
+Each approved implementation unit uses a fresh `sof-implement-task` invocation. Early unit review is added when the selected profile, evidence, dependencies, or new implementation findings require it. Each code-review scope starts with a complete attempt `1`; finding-only fixes receive focused follow-up review, while material-basis changes restart complete review at attempt `1`. Attempts are capped at three and total reviewer calls per scope at five.
 
 ### Workflow Artifacts
 

@@ -142,7 +142,11 @@ Execution:
 
 - Invoke fresh `sof-implement-task` calls for approved units in dependency order.
 - Require early `sof-review-code` for High Risk risk/foundational units; for Standard when evidence, dependencies, shared/high-risk behavior, or implementer concerns justify it. Streamlined discoveries that invalidate its profile return to planning.
-- Code-review attempts are capped at three. After all units, always run integrated review, then verification.
+- Each code-review scope (`IMPLEMENTATION_UNIT:<id>` or `INTEGRATED`) has independent counters. Initialize it at attempt `0` and total calls `0`; before every reviewer call increment total calls, set the first call to attempt `1`, and never reuse the same attempt/total pair.
+- After `CHANGES_REQUESTED`, pass complete findings and the prior receipt to the implementer and reviewer. Use the implementer's revision classification as the candidate next-attempt rule: `FINDING_ONLY` increments attempt and focuses on findings, changed code, and affected behavior; `MATERIAL_BASIS_CHANGE` resets attempt to `1` and requires complete-scope review. The reviewer independently validates and reports the effective classification/attempt; total calls never reset within a scope.
+- Attempt `3` with unresolved findings is `BLOCKED`. On total code-review call `5`, the reviewer returns only `APPROVED` or `BLOCKED`. A new implementation-unit scope or the integrated scope starts fresh counters.
+- After every code-review receipt, persist active scope, effective attempt, total calls, revision classification, verdict, and unresolved findings in `state.md`.
+- After all units, always run integrated review, then verification.
 - Run `sof-audit-release` only for an explicit post-verification operation or audit request; after `PASS`, route the exact operation through `OPERATION`.
 
 ## Recovery And Blocked Output

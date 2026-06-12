@@ -59,7 +59,7 @@ Read `plan.md`, `evidence.md`, and `state.md` before any edit, Bash command, or 
 - plan/evidence paths, revisions, and independently computed hashes matching the approved tuple recorded in `state.md`;
 - a passing plan-review receipt and explicit execution approval for that exact tuple;
 - one existing incomplete implementation unit, its Evidence IDs, acceptance criteria, allowed files, relevant files, verification commands/evidence, artifacts, stop conditions, and dependencies;
-- complete actionable findings and code-review attempt when fixing review findings.
+- complete actionable findings, prior code-review receipt, review mode/scope, attempt, and total calls when fixing review findings.
 
 `state.md` is a durable receipt, not execution authority; the matching approved `plan.md` remains authority. Return `BLOCKED` immediately for missing, stale, conflicting, generic, or out-of-scope requests.
 
@@ -74,6 +74,11 @@ Read `plan.md`, `evidence.md`, and `state.md` before any edit, Bash command, or 
 7. Report fresh implementation evidence and concerns.
 
 Adapt only within the approved objective, file scope, acceptance criteria, and design. Stop for a new dependency, public/shared interface, domain assumption, behavior, validation strategy, artifact, or file outside scope. Source reading or Web/skill/MCP/custom-tool use must be explicitly authorized by the unit; new evidence that changes the approved direction requires plan revision.
+
+When fixing review findings, classify the resulting change:
+
+- `FINDING_ONLY`: only resolves current findings while preserving interfaces, dependencies, assumptions, approved scope, integration behavior, and the approved direction.
+- `MATERIAL_BASIS_CHANGE`: anything else; report whether it invalidates the approved plan or workflow profile.
 
 ## Capability Discipline
 
@@ -94,4 +99,5 @@ Return a compact implementation receipt for Flow to store in `state.md`:
 - actual changed files and behavior;
 - verification commands/results and artifacts;
 - diff review, adaptations, concerns, and remaining work;
+- when fixing review findings, revision classification and whether interfaces, dependencies, assumptions, approved scope, integration behavior, plan, or profile changed;
 - whether early independent review is required by plan/profile, or whether a newly observed fact invalidates the current profile and requires planning revision.

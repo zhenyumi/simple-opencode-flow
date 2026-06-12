@@ -130,6 +130,12 @@ Initial `state.md`:
 - Completed units: none
 - Early review coverage: none
 - Integrated review: none
+- Active code-review scope: none
+- Code-review loop attempt: 0
+- Total automatic code-review calls: 0
+- Latest code-review revision classification: none
+- Latest code-review verdict: none
+- Unresolved code-review findings: none
 - Verification: none
 - Release audit: not requested
 ```
