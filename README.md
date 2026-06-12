@@ -1,8 +1,8 @@
-# OpenCode Flow Agents
+# OpenCode Flow Agents (sof CLI)
 
-A small native OpenCode agent collection for evidence-based planning, gated implementation, independent review, and release audit.
+A small native OpenCode agent collection for evidence-based planning, gated implementation, independent review, and release audit, distributed via an npm CLI installer (`sof`).
 
-The agents live in `.opencode/agents/`, the native project-local OpenCode agent directory. No plugin or external runtime is required.
+**canonical source:** `agents/` at the repository root is the only tracked and package-shipped agent source. This is not an OpenCode plugin — it installs agents and patches configuration directly.
 
 ## Workflow
 
@@ -15,12 +15,12 @@ flowchart TD
     subgraph PLANPHASE["Planning phase"]
         direction TB
 
-        E["explore-repository<br/><br/>learn what the project and task depend on"]
+        E["sof-explore-repository<br/><br/>learn what the project and task depend on"]
         EV[["evidence.md<br/><br/>records inspected sources,<br/>facts, constraints, risks, and unknowns"]]
-        D["design-change<br/><br/>choose an approach supported by evidence"]
-        W["write-plan<br/><br/>turn the approved design into executable tasks"]
+        D["sof-design-change<br/><br/>choose an approach supported by evidence"]
+        W["sof-write-plan<br/><br/>turn the approved design into executable tasks"]
         PLAN[["plan.md<br/><br/>defines exactly what may be executed"]]
-        RP["review-plan<br/><br/>approve the exact plan + evidence tuple"]
+        RP["sof-review-plan<br/><br/>approve the exact plan + evidence tuple"]
 
         E -- "records discovered evidence" --> EV
         EV -- "supports design decisions" --> D
@@ -39,9 +39,9 @@ flowchart TD
     subgraph EXECPHASE["Execution phase"]
         direction TB
 
-        I["implement-task<br/><br/>perform one approved task"]
+        I["sof-implement-task<br/><br/>perform one approved task"]
         TE[["Task evidence<br/><br/>records what happened during this task"]]
-        RC["review-code<br/><br/>check scope, quality, and evidence"]
+        RC["sof-review-code<br/><br/>check scope, quality, and evidence"]
 
         I -- "records task result" --> TE
         TE -- "review implementation evidence" --> RC
@@ -54,9 +54,9 @@ flowchart TD
     subgraph RELEASEPHASE["Release phase"]
         direction TB
 
-        V["verify-release<br/><br/>run only the approved verification commands"]
+        V["sof-verify-release<br/><br/>run only the approved verification commands"]
         VE[["Verification evidence<br/><br/>records final check results"]]
-        AR["audit-release<br/><br/>final release-readiness audit"]
+        AR["sof-audit-release<br/><br/>final release-readiness audit"]
 
         V -- "records verification result" --> VE
         VE -- "audit final evidence" --> AR
@@ -102,30 +102,216 @@ Planning produces two authoritative artifacts:
 | Agent | Role |
 | --- | --- |
 | `flow` | Primary workflow router and gatekeeper |
-| `explore-repository` | Collect repository evidence |
-| `design-change` | Define design decisions and acceptance criteria |
-| `write-plan` | Create or revise `plan.md` and `evidence.md` |
-| `review-plan` | Independently review and approve exact plan/evidence revisions |
-| `implement-task` | Implement one approved task |
-| `review-code` | Review implementation against the approved plan |
-| `verify-release` | Run fresh release verification |
-| `audit-release` | Perform the final evidence-only release audit |
+| `sof-explore-repository` | Collect repository evidence |
+| `sof-design-change` | Define design decisions and acceptance criteria |
+| `sof-write-plan` | Create or revise `plan.md` and `evidence.md` |
+| `sof-review-plan` | Independently review and approve exact plan/evidence revisions |
+| `sof-implement-task` | Implement one approved task |
+| `sof-review-code` | Review implementation against the approved plan |
+| `sof-verify-release` | Run fresh release verification |
+| `sof-audit-release` | Perform the final evidence-only release audit |
 
-## Install
+## Installation
 
-Copy `.opencode/agents/` into the root of the target repository:
-
-```bash
-mkdir -p /path/to/project/.opencode
-cp -R .opencode/agents /path/to/project/.opencode/
-```
-
-Verify discovery:
+### Primary: npm CLI installer
 
 ```bash
-cd /path/to/project
-opencode agent list --pure
+npm install -g simple-opencode-flow
+sof install
 ```
+
+This installs all agents to the current project's `.opencode/agents/` directory.
+
+### Global installation
+
+```bash
+npm install -g simple-opencode-flow
+sof install --global
+```
+
+Installs agents to `~/.config/opencode/agents/`.
+
+### Project-specific installation
+
+```bash
+sof install --project /path/to/project
+```
+
+Installs agents to the specified project directory.
+
+### Scope resolution
+
+- `--project <path>`: uses the exact normalized directory
+- Default (no `--project`, no `--global`): discovers the nearest Git root from the current working directory
+- If no Git root is found, `sof install` fails with a clear error — it never silently falls back to the current working directory
+
+### manual fallback installation
+
+If the CLI installer is unavailable, you can manually copy agents from the package:
+
+```bash
+# Find the package location
+npm root -g
+# Copy agents to your project
+cp -R $(npm root -g)/simple-opencode-flow/agents/*.md /path/to/project/.opencode/agents/
+```
+
+## CLI Commands
+
+### `sof install`
+
+Install agents to the target project or global scope.
+
+```bash
+sof install [--project <path> | --global] [--dry-run] [--force] [--migrate-legacy]
+```
+
+**Options:**
+- `--project <path>`: install to specific project directory
+- `--global`: install to `~/.config/opencode/agents/`
+- `--dry-run`: preview what would be installed without making changes
+- `--force`: overwrite existing agents (resolves ownership conflicts only)
+- `--migrate-legacy`: detect and rename pre-sof agents by exact SHA-256 match
+
+**Behavior:**
+- Copies agents from package `agents/` to target with `sof-` prefix renaming
+- Creates per-rule config ownership manifest (`.opencode/.sof-manifest.json`)
+- Patches Build and Plan Task permissions to deny `sof-*` and `flow` agents
+- Creates timestamped backups before any modifications
+
+### `sof update`
+
+Update installed agents and configuration.
+
+```bash
+sof update [--project <path> | --global] [--dry-run] [--force]
+```
+
+**Options:**
+- `--project <path>`: update specific project
+- `--global`: update global installation
+- `--dry-run`: preview changes without applying
+- `--force`: overwrite user-modified managed agents
+
+**Behavior:**
+- Compares current state against manifest's last-written state
+- User-modified managed agents are reported as conflicts (require `--force`)
+- Preserves user-added config fields
+- Updates only installer-owned content
+
+### `sof uninstall`
+
+Remove installed agents and configuration.
+
+```bash
+sof uninstall [--project <path> | --global] [--dry-run] [--force]
+```
+
+**Options:**
+- `--project <path>`: uninstall from specific project
+- `--global`: uninstall global installation
+- `--dry-run`: preview what would be removed
+- `--force`: remove user-modified managed agents
+
+**Behavior:**
+- Removes managed agent files
+- Removes only installer-owned config changes
+- Restores original scalar Task policy only when exact match
+- Preserves all user-added fields and content
+- Creates backups before removal
+
+### `sof doctor`
+
+Diagnose installation state and protection levels.
+
+```bash
+sof doctor [--project <path> | --global] [--runtime]
+```
+
+**Options:**
+- `--project <path>`: diagnose specific project
+- `--global`: diagnose global installation
+- `--runtime`: check runtime OpenCode protection (requires `opencode` binary)
+
+**Three protection levels:**
+
+1. **Selected-scope protection** (always checked): verifies that Build and Plan Task permissions in the project/global config deny `sof-*` and `flow` agents. This is the installer-managed protection.
+
+2. **Plugin-free resolved protection** (default without `--runtime`): uses `opencode debug config --pure` to check the fully resolved config without plugins. Reports UNKNOWN if `opencode` is unavailable or output is unrecognized.
+
+3. **Runtime protection** (`--runtime` only): checks actual runtime protection including plugins. Reports UNKNOWN when uncertain. **Note:** Runtime protection depends on OpenCode's plugin system and cannot be guaranteed by the installer alone.
+
+**Important:** `sof doctor` reports protection status but does NOT claim unconditional global protection. Protection depends on:
+- Correct config patching (installer-managed)
+- OpenCode version compatibility
+- Plugin system behavior (runtime only)
+
+## Safety Model
+
+### Backups
+
+All operations create timestamped backups before modifying or deleting existing data. Backups are located in `.opencode/.sof-backups-<timestamp>/` within the project root.
+
+### Atomic operations
+
+File operations use atomic same-directory temp writes followed by rename, preventing partial writes on failure.
+
+### Rollback
+
+On caught errors during operations, the installer performs best-effort rollback:
+- Restores backed-up files
+- Deletes newly created files
+- Reports rollback status
+
+**Important:** Rollback only works for caught errors. If the process is terminated abnormally (e.g., kill -9, power loss), partial state may remain. Use `sof doctor` to detect inconsistencies and manually restore from backups.
+
+### Manual restoration from backups
+
+After abnormal termination, you can manually restore from backups:
+
+```bash
+# Find the latest backup directory
+ls -la .opencode/.sof-backups-*
+
+# Restore specific files
+cp .opencode/.sof-backups-*/opencode.json .opencode/
+cp .opencode/.sof-backups-*/agents/*.md .opencode/agents/
+```
+
+### Pre-validation
+
+All parsing, validation, ownership checks, conflict detection, and operation planning complete before any write. `--dry-run` performs this pre-validation with zero writes.
+
+## Build and Plan Task Protection
+
+The installer patches OpenCode configuration to deny `sof-*` and `flow` agents in both Build and Plan Task permissions:
+
+```jsonc
+{
+  "agent": {
+    "build": {
+      "permission": {
+        "task": {
+          "sof-*": "deny",
+          "flow": "deny"
+        }
+      }
+    },
+    "plan": {
+      "permission": {
+        "task": {
+          "sof-*": "deny",
+          "flow": "deny"
+        }
+      }
+    }
+  }
+}
+```
+
+This prevents workflow agents from being invoked during Build and Plan phases, ensuring they only run during their designated workflow stages.
+
+**Position-aware enforcement:** If existing deny rules have the correct value but are not positioned last in the Task object (where last-match-wins applies), the installer moves them to the end to prevent potential overrides.
 
 ## Use
 
@@ -135,7 +321,7 @@ Select the `flow` primary agent in OpenCode, then describe the goal and constrai
 Create a reviewed implementation plan for <goal>. Plan only; do not execute.
 ```
 
-After `review-plan` approves the exact plan/evidence tuple, explicitly authorize execution:
+After `sof-review-plan` approves the exact plan/evidence tuple, explicitly authorize execution:
 
 ```text
 Approve execution of the current approved plan.

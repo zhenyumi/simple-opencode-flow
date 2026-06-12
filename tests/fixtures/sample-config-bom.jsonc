@@ -1,0 +1,21 @@
+﻿{
+  // This is a line comment
+  "name": "test-project",
+  "version": "1.0.0",
+  /* Block comment */
+  "agent": {
+    "build": {
+      "permission": {
+        "task": {
+          "custom-rule": "allow"
+        }
+      }
+    },
+    "plan": {
+      "permission": {
+        "task": "allow" // scalar task
+      }
+    }
+  },
+  "extra": "value", // trailing comma follows
+}

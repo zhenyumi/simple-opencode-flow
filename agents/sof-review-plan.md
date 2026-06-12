@@ -80,7 +80,7 @@ At review entry, independently calculate both plan and evidence SHA-256 values w
 
 If plan or evidence content changed without its corresponding revision increment, return `BLOCKED`.
 
-Independently classify evidence changes; never rely only on `write-plan`'s classification:
+Independently classify evidence changes; never rely only on `sof-write-plan`'s classification:
 
 - If evidence changed only to address current review findings within the same design scope and without changing the evidence basis, continue the current review loop.
 - If evidence adds sources, changes facts, changes evidence-to-task mappings, changes risk or source interpretation, or expands scope, start a new review loop at attempt `1` for the new plan/evidence tuple.
@@ -99,7 +99,7 @@ Perform targeted repository validation only when:
 
 - Every plan requires at least one review attempt.
 - Attempt `1` may return `APPROVED` when no actionable finding remains.
-- Attempts `1` and `2` may return `CHANGES_REQUESTED`; the complete findings must be sent to `write-plan`.
+- Attempts `1` and `2` may return `CHANGES_REQUESTED`; the complete findings must be sent to `sof-write-plan`.
 - Attempt `3` must return `APPROVED` or `BLOCKED`. Never request a fourth automatic revision.
 - Any plan modification invalidates every earlier approval. The changed revision requires a new review.
 - Any evidence modification invalidates every earlier approval. Apply the evidence-change classification rule to determine whether the review loop continues or restarts at attempt `1`.
@@ -143,7 +143,7 @@ For `APPROVED`, include this exact sentence:
 
 `This approval applies only to the exact plan path, plan revision, plan SHA-256, evidence path, evidence revision, evidence SHA-256, and review attempt reported above.`
 
-For `CHANGES_REQUESTED`, provide complete actionable findings for `write-plan` and state whether the current review loop continues or a new loop starts at attempt `1`. For attempt `3` with unresolved findings in the same loop, return `BLOCKED`.
+For `CHANGES_REQUESTED`, provide complete actionable findings for `sof-write-plan` and state whether the current review loop continues or a new loop starts at attempt `1`. For attempt `3` with unresolved findings in the same loop, return `BLOCKED`.
 
 ## Handoff
 

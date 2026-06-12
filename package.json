@@ -1,0 +1,25 @@
+{
+  "name": "simple-opencode-flow",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "sof": "./dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "agents/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

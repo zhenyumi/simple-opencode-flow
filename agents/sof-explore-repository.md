@@ -82,7 +82,7 @@ For R and bioinformatics repositories, also inspect relevant `DESCRIPTION`, `NAM
 
 ## Output
 
-Return a concise but complete `Evidence Package for Planning`. It must be sufficient for `design-change`, `write-plan`, and `review-plan` to continue without repeating broad repository exploration.
+Return a concise but complete `Evidence Package for Planning`. It must be sufficient for `sof-design-change`, `sof-write-plan`, and `sof-review-plan` to continue without repeating broad repository exploration.
 
 ## Evidence Package for Planning
 
@@ -124,4 +124,4 @@ End with:
 - **Files inspected**
 - **Constraints**
 - **Unknowns**
-- **Next recommended gate**: normally `design-change`
+- **Next recommended gate**: normally `sof-design-change`

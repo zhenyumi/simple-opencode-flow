@@ -1,0 +1,6 @@
+{
+  // This file has malformed syntax
+  "name": "test",
+  "value": undefined,
+  "missing": 
+}

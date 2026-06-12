@@ -66,7 +66,7 @@ The task must identify:
 
 - The stable plan path, Plan revision, and reviewed Plan SHA-256.
 - The sibling evidence path, Evidence Revision, reviewed Evidence SHA-256, and relevant Evidence IDs.
-- Complete `review-plan` approval evidence containing an `APPROVED` verdict for that exact plan and evidence snapshot.
+- Complete `sof-review-plan` approval evidence containing an `APPROVED` verdict for that exact plan and evidence snapshot.
 - The review attempt number, which must be from 1 through 3.
 - When fixing review findings, the code review attempt number and complete actionable findings.
 - The objective and acceptance criteria.
@@ -84,7 +84,7 @@ This is your first and highest-priority action. Before any edit, Bash command, i
 2. Compute Plan SHA-256 and confirm it matches approval.
 3. Confirm sibling `evidence.md` exists and Evidence Revision matches approval.
 4. Compute Evidence SHA-256 and confirm it matches approval.
-5. Confirm complete `review-plan` approval evidence says `APPROVED` for that exact complete tuple and review attempt.
+5. Confirm complete `sof-review-plan` approval evidence says `APPROVED` for that exact complete tuple and review attempt.
 6. Confirm the delegated task exists in the approved plan and every supplied Evidence ID exists in evidence.
 7. Confirm objective, acceptance criteria, allowed files, relevant files, task-level verification commands, expected evidence, allowed artifacts, and stop conditions are complete.
 8. Confirm the request is an implementation task, not a generic file-write, shell-command, review, planning, or fallback request.
@@ -162,4 +162,4 @@ Return:
 
 ## Handoff
 
-End with the exact plan and evidence snapshot, task ID, Evidence IDs, changed files, verification evidence, generated or temporary artifacts, unresolved concerns, and the complete handoff for `review-code`.
+End with the exact plan and evidence snapshot, task ID, Evidence IDs, changed files, verification evidence, generated or temporary artifacts, unresolved concerns, and the complete handoff for `sof-review-code`.

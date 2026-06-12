@@ -1,0 +1,19 @@
+{
+  // Config with duplicate keys
+  "agent": {
+    "build": {
+      "permission": {
+        "task": {
+          "rule1": "allow"
+        }
+      }
+    },
+    "build": {
+      "permission": {
+        "task": {
+          "rule2": "deny"
+        }
+      }
+    }
+  }
+}
