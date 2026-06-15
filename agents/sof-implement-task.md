@@ -67,7 +67,9 @@ Read `plan.md`, `evidence.md`, and `state.md` before any edit, Bash command, or 
 
 1. Inspect repository state and declared relevant files.
 2. Confirm the unit matches repository reality and local patterns.
+When the approved unit involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the approved evidence for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Record use only in the implementation receipt. Do not mutate approved evidence solely because a support document was read. Support documents are non-authoritative; the approved plan.md, evidence.md, and agent definitions take precedence.
 3. Make the smallest coherent change within allowed scope.
+Do not perform unrelated formatting, cleanup, renames, refactors, helper extraction, code generation, or mutating automation unless explicitly required by the approved unit.
 4. Add focused tests only when required to prove the unit.
 5. Run only approved implementation-unit verification commands.
 6. Review the actual diff for accidental changes, secrets, debug output, artifacts, and scope expansion.

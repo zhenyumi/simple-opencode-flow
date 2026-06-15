@@ -69,8 +69,11 @@ Return `BLOCKED` without project commands when any input is stale, incomplete, t
 - Record each command, exit status, expected evidence, and actual evidence.
 - Compare before-and-after repository state, protected hashes, and artifacts.
 - Any unexplained tracked change, unsafe artifact, protected-file change, failed check, or indeterminate state is `BLOCKED`.
-- Recompute the plan/evidence tuple at the end only when state evidence indicates either artifact may have changed.
+- Always recompute the plan/evidence SHA-256 tuple unconditionally after all approved verification commands complete. Hash only the current approved tuple's named task-relevant plan and evidence artifact paths directly. When the approved tuple explicitly names multiple evidence artifacts, hash only those named evidence artifacts — do not discover, scan, hash, or compare unrelated plan, evidence, or state files.
+- Confirm the recomputed tuple matches the approved tuple recorded in `state.md`. Return `BLOCKED` on any mismatch.
+- Do not use Git status as authority-artifact integrity evidence.
 - The active sibling `state.md` is expected workflow metadata. It must not change during verifier execution; Flow may update it with this verification receipt afterward.
+- Normally do not consult support documents. The approved verification commands, plan.md, and evidence.md are the sole authorities for this gate.
 
 ## Boundaries
 

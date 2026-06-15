@@ -80,7 +80,7 @@ Review-loop rules:
 - On `Total automatic plan-review calls: 5`, return only `APPROVED` or `BLOCKED`.
 - Flow may start a new review cycle only after explicit user authorization; a new cycle resets total calls but does not restore stale approval.
 
-Approval applies only to the exact plan path/revision/SHA-256, evidence path/revision/SHA-256, review cycle, loop attempt, and approval scope.
+Approval applies only to the exact approved tuple: plan path, plan revision, plan SHA-256, evidence path, evidence revision, evidence SHA-256, review cycle, and loop attempt. The approval scope bound by that tuple is the exact approved execution boundary — the approved plan revision plus the specific implementation units, files, commands, artifacts, and release actions authorized for the current gate. Unnamed units, files, commands, artifacts, and release actions remain unauthorized.
 
 ## Boundaries
 
@@ -101,4 +101,4 @@ Begin with `APPROVED`, `CHANGES_REQUESTED`, `CAPABILITY_GAP`, or `BLOCKED`, then
 
 For approval include:
 
-`This approval applies only to the exact plan path, plan revision, plan SHA-256, evidence path, evidence revision, evidence SHA-256, review cycle, loop attempt, and approval scope reported above.`
+`This approval applies only to the exact approved tuple: plan path, plan revision, plan SHA-256, evidence path, evidence revision, evidence SHA-256, review cycle, and loop attempt reported above. The approval scope bound by that tuple is the exact approved execution boundary — the approved plan revision plus its specific units, files, commands, artifacts, and release actions.`

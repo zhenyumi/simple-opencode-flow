@@ -190,6 +190,10 @@ Within the same session, Flow distinguishes continuing the current approved plan
 
 Native `general` has three roles: `ANSWER` explanation or synthesis, exact `OPERATION` execution, and permitted focused fallback before a formal gate. It never replaces formal design, planning, implementation, review, verification, or audit.
 
+### Support Documents
+
+Support documents are optional, non-authoritative references. Project and `--target` installs place them under `.opencode/sof-support/`. They are not agents, skills, commands, workflows, gates, or workflow authority. They are not automatically loaded and do not override SOF routing, artifacts, approved tuples, commands, approvals, verification, audit, stop conditions, or user instructions. Available support documents are listed through `registry.md`.
+
 ### Terminology
 
 - **Subagent invocation**: one focused-agent call made by Flow.

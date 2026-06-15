@@ -7,6 +7,7 @@ import { homedir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SOURCE_DIR = resolve(__dirname, '..', 'agents');
+const SOF_SUPPORT_SOURCE = resolve(__dirname, '..', 'sof-support');
 
 // Parse arguments
 const args = process.argv.slice(2);
@@ -91,6 +92,9 @@ if (sourceFiles.length === 0) {
   console.error(`Error: Source directory is empty: ${SOURCE_DIR}`);
   process.exit(2);
 }
+
+// Validate support directory (optional but copies if present)
+const hasSupportDocs = existsSync(SOF_SUPPORT_SOURCE);
 
 // Determine paths based on scope
 const targetDir = targetPath !== null
@@ -190,6 +194,22 @@ for (const file of sourceFiles) {
     }
     cpSync(srcPath, destPath);
     console.log(`Copied ${srcPath} -> ${destPath}`);
+  }
+}
+
+// Copy support documents (separate from agents; non-authoritative references)
+if (hasSupportDocs) {
+  const supportTarget = targetPath !== null
+    ? resolve(targetPath, '.opencode', 'sof-support')
+    : scope === 'project'
+      ? resolve(process.cwd(), '.opencode', 'sof-support')
+      : resolve(homedir(), '.config', 'opencode', 'sof-support');
+
+  if (dryRun) {
+    console.log(`[DRY-RUN] Copy ${SOF_SUPPORT_SOURCE}/* -> ${supportTarget}/`);
+  } else {
+    cpSync(SOF_SUPPORT_SOURCE, supportTarget, { recursive: true });
+    console.log(`Copied ${SOF_SUPPORT_SOURCE} -> ${supportTarget}`);
   }
 }
 

@@ -69,6 +69,8 @@ For integrated review, fully inspect deferred units and cross-unit behavior. Reu
 
 Review changed code in context and trace callers/consumers when needed:
 
+When reviewing implementation that involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the approved evidence for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Record use only in the review receipt. Do not mutate approved evidence solely because a support document was read. Support documents are non-authoritative; the approved plan.md, evidence.md, and agent definitions take precedence.
+
 1. Approval integrity and actual changed-file scope.
 2. Continued validity of the workflow profile, specification, and acceptance-criteria coverage.
 3. Correctness, edge cases, failure handling, data integrity, and compatibility.

@@ -44,6 +44,8 @@ Require a self-contained goal, constraints, locked choices, and workflow profile
 
 Actually read source content before relying on it. A path, citation, package, or title alone is not evidence. Label inferences, unavailable sources, risks, and unknowns explicitly. Stop when evidence is sufficient; never explore broadly for completeness.
 
+When the goal or evidence concerns plan structure, review standards, verification patterns, or agent interaction rules, consult `.opencode/sof-support/registry.md` and any task-relevant referenced lenses for supplemental guidance. Register consulted support documents in evidence. Do not automatically read every support document. Support documents are non-authoritative; the plan writer's specification, the approved plan.md, and agent definitions take precedence.
+
 ## Compact Evidence Package
 
 Return one compact package for the designer and writer:

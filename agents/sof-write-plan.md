@@ -49,6 +49,8 @@ Always require the goal, constraints, acceptance criteria, locked choices, and w
 - `STANDARD` or `HIGH_RISK`: require the compact Evidence Package and Design Package. Use targeted supplemental inspection only for a concrete gap.
 - Revision: require current artifact paths/revisions, current `state.md`, latest findings, and previously reviewed tuple when available.
 
+For STANDARD and HIGH_RISK profiles, consult only the exact support-document paths already registered in evidence for supplemental guidance on plan structure, evidence standards, verification patterns, and agent interaction rules. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. If a new support document is needed, evidence must be revised before approval. Support documents are non-authoritative; the goal, constraints, acceptance criteria, locked choices, evidence package, design package, and agent definitions take precedence.
+
 For Streamlined, return exactly `ESCALATE_TO_STANDARD` or `ESCALATE_TO_HIGH_RISK` before creating or modifying any artifact if scope is unclear, more than one coherent unit is needed, alternatives require a decision, or any material external knowledge, unknown, shared interface, dependency, public configuration, data format, migration, security, privacy, permission, or irreversible operation is involved.
 
 ## Artifacts And Authorities
@@ -94,7 +96,6 @@ Create the directory only with `mkdir -p .opencode/plans/YYYY-MM-DD-<slug>`. Nev
 
 - Evidence path: `.opencode/plans/YYYY-MM-DD-<slug>/evidence.md`
 - Supports plan path: `.opencode/plans/YYYY-MM-DD-<slug>/plan.md`
-- Supports plan revision: <positive integer>
 - Workflow profile: STREAMLINED | STANDARD | HIGH_RISK
 - Evidence Revision: <positive integer>
 - Updated: YYYY-MM-DD
@@ -106,7 +107,6 @@ Initial `state.md`:
 # Workflow State: <title>
 
 - State path: `.opencode/plans/YYYY-MM-DD-<slug>/state.md`
-- State revision: 1
 - Workflow profile: STREAMLINED | STANDARD | HIGH_RISK
 - Current phase: PLAN_ONLY
 - Next gate: sof-review-plan
@@ -166,6 +166,7 @@ For Streamlined, keep evidence and plan proportionate: one unit, only directly r
 - Every content change increments that artifact's revision exactly once.
 - Evidence changes include source, fact, Evidence ID, mapping, risk, unknown, interpretation, or scope changes.
 - If evidence is byte-for-byte unchanged, preserve it and its revision.
+- Increment evidence revision only when evidence is added, corrected, invalidated, reinterpreted, or remapped. Do not discover or update unrelated evidence artifacts. An evidence revision change invalidates approval.
 - Any plan/evidence change invalidates approval.
 - Any workflow-profile change after artifacts exist must update both plan and evidence, increment both revisions, and invalidate approval.
 - Address every review finding and classify the revision:
