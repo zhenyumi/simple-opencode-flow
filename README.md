@@ -225,7 +225,7 @@ node scripts/install.mjs --target ./my-project
 node scripts/install.mjs --dry-run
 ```
 
-Project and target installs patch or create `opencode.json` with deny entries that prevent native `build` and `plan` agents from invoking Flow or `sof-*` agents directly. The installer rejects JSONC configuration and preserves unrelated existing configuration.
+Project, target, and global installs patch or create `opencode.json` with deny entries that prevent native `build` and `plan` agents from invoking Flow or `sof-*` agents directly. The installer rejects JSONC configuration and preserves unrelated existing configuration.
 
 Install is additive and scoped: it copies or updates SOF-owned agent/support files in their corresponding target locations, does not delete unrelated files, and patches only the required `opencode.json` permission paths. If an existing config path has an incompatible non-object value, install fails before writing. Re-running install is idempotent for the same SOF-owned files and config paths.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { resolve, dirname, join, basename } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 
@@ -68,8 +68,8 @@ if (help) {
   console.log(`Usage: node scripts/install.mjs [options]
 
 Options:
-  --scope <project|global>  Installation scope (default: project)
-  --target <path>           Install to a custom project directory (creates .opencode/agents/ at target, patches opencode.json if present; mutually exclusive with --scope)
+  --scope <project|global>  Installation scope (default: project; both patch opencode.json)
+  --target <path>           Install to a custom project directory (creates .opencode/agents/ at target and patches opencode.json; mutually exclusive with --scope)
   --dry-run                 Show planned operations without executing
   --help                    Show this help message
 
@@ -109,76 +109,161 @@ const configDir = targetPath !== null
     ? process.cwd()
     : resolve(homedir(), '.config', 'opencode');
 
+const VALID_ACTIONS = new Set(['allow', 'ask', 'deny']);
+const DENIED_TASK_AGENTS = ['sof-*', 'flow'];
+
+function isPlainObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function formatPath(path) {
+  return path.join('.');
+}
+
+function ensureObject(parent, key, path, markChanged) {
+  if (parent[key] === undefined) {
+    parent[key] = {};
+    markChanged();
+  } else if (!isPlainObject(parent[key])) {
+    throw new Error(`Non-object value at path "${formatPath(path)}"`);
+  }
+  return parent[key];
+}
+
+function normalizePermissionRule(value, path, markChanged) {
+  if (value === undefined) {
+    markChanged();
+    return {};
+  }
+
+  if (typeof value === 'string') {
+    if (!VALID_ACTIONS.has(value)) {
+      throw new Error(`Unsupported permission value at path "${formatPath(path)}". Expected "allow", "ask", "deny", or an object.`);
+    }
+    markChanged();
+    return { '*': value };
+  }
+
+  if (!isPlainObject(value)) {
+    throw new Error(`Unsupported permission value at path "${formatPath(path)}". Expected "allow", "ask", "deny", or an object.`);
+  }
+
+  return value;
+}
+
+function normalizeTaskRule(permission, path, markChanged) {
+  const value = permission.task;
+  const inheritedAction = typeof permission['*'] === 'string' && VALID_ACTIONS.has(permission['*'])
+    ? permission['*']
+    : undefined;
+
+  if (value === undefined) {
+    const task = {};
+    if (inheritedAction !== undefined) {
+      task['*'] = inheritedAction;
+    }
+    permission.task = task;
+    markChanged();
+    return task;
+  }
+
+  if (typeof value === 'string') {
+    if (!VALID_ACTIONS.has(value)) {
+      throw new Error(`Unsupported permission value at path "${formatPath(path)}". Expected "allow", "ask", "deny", or an object.`);
+    }
+    const task = { '*': value };
+    permission.task = task;
+    markChanged();
+    return task;
+  }
+
+  if (!isPlainObject(value)) {
+    throw new Error(`Unsupported permission value at path "${formatPath(path)}". Expected "allow", "ask", "deny", or an object.`);
+  }
+
+  return value;
+}
+
+function patchTaskDeny(config, agentName) {
+  let changed = false;
+  const markChanged = () => {
+    changed = true;
+  };
+
+  const agent = ensureObject(config, 'agent', ['agent'], markChanged);
+  const agentConfig = ensureObject(agent, agentName, ['agent', agentName], markChanged);
+  const permissionPath = ['agent', agentName, 'permission'];
+  agentConfig.permission = normalizePermissionRule(agentConfig.permission, permissionPath, markChanged);
+  const task = normalizeTaskRule(agentConfig.permission, [...permissionPath, 'task'], markChanged);
+
+  const before = JSON.stringify(task);
+  for (const taskAgent of DENIED_TASK_AGENTS) {
+    delete task[taskAgent];
+  }
+  for (const taskAgent of DENIED_TASK_AGENTS) {
+    task[taskAgent] = 'deny';
+  }
+  if (JSON.stringify(task) !== before) {
+    markChanged();
+  }
+
+  return changed;
+}
+
+function patchConfig(config) {
+  let changed = false;
+  for (const agentName of ['build', 'plan']) {
+    if (patchTaskDeny(config, agentName)) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 // Check for JSONC before any file writes
 const jsoncPath = join(configDir, 'opencode.jsonc');
 if (existsSync(jsoncPath)) {
-  console.error('This installer does not support JSONC configuration. Please use opencode.json instead.');
+  console.error('OpenCode supports opencode.jsonc, but this installer only safely patches opencode.json without preserving JSONC comments or formatting. Please use opencode.json or patch the task permission entries manually.');
   process.exit(1);
 }
 
-// Config patching/creation (project scope and --target only)
-let configPatched = false;
-let configCreated = false;
+// Config patching/creation
+let configStatus = null;
 const jsonPath = join(configDir, 'opencode.json');
 
-if (scope === 'project' || targetPath !== null) {
-  const denyEntries = [
-    ['agent', 'build', 'permission', 'task', 'sof-*'],
-    ['agent', 'build', 'permission', 'task', 'flow'],
-    ['agent', 'plan', 'permission', 'task', 'sof-*'],
-    ['agent', 'plan', 'permission', 'task', 'flow'],
-  ];
-
-  if (existsSync(jsonPath)) {
-    let config;
-    try {
-      const raw = readFileSync(jsonPath, 'utf-8');
-      config = JSON.parse(raw);
-    } catch (e) {
-      console.error(`Error: Invalid JSON in ${jsonPath}: ${e.message}`);
-      process.exit(1);
-    }
-
-    for (const path of denyEntries) {
-      let current = config;
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        if (current[key] === undefined) {
-          current[key] = {};
-        } else if (typeof current[key] !== 'object' || current[key] === null) {
-          console.error(`Error: Non-object value at path "${path.slice(0, i + 1).join('.')}" in ${jsonPath}`);
-          process.exit(1);
-        }
-        current = current[key];
-      }
-      current[path[path.length - 1]] = 'deny';
-    }
-
-    if (!dryRun) {
-      writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
-    }
-    configPatched = true;
-  } else {
-    const config = {};
-
-    for (const path of denyEntries) {
-      let current = config;
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        if (current[key] === undefined) {
-          current[key] = {};
-        }
-        current = current[key];
-      }
-      current[path[path.length - 1]] = 'deny';
-    }
-
-    if (!dryRun) {
-      mkdirSync(configDir, { recursive: true });
-      writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
-    }
-    configCreated = true;
+if (existsSync(jsonPath)) {
+  let config;
+  try {
+    const raw = readFileSync(jsonPath, 'utf-8');
+    config = JSON.parse(raw);
+  } catch (e) {
+    console.error(`Error: Invalid JSON in ${jsonPath}: ${e.message}`);
+    process.exit(1);
   }
+
+  try {
+    const changed = patchConfig(config);
+    if (changed) {
+      if (!dryRun) {
+        writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
+      }
+      configStatus = 'patched';
+    } else {
+      configStatus = 'unchanged';
+    }
+  } catch (e) {
+    console.error(`Error: ${e.message} in ${jsonPath}`);
+    process.exit(1);
+  }
+} else {
+  const config = {};
+  patchConfig(config);
+
+  if (!dryRun) {
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(jsonPath, JSON.stringify(config, null, 2) + '\n');
+  }
+  configStatus = 'created';
 }
 
 // Copy files
@@ -214,18 +299,20 @@ if (hasSupportDocs) {
 }
 
 // Report config status
-if (configPatched) {
+if (configStatus === 'patched') {
   if (dryRun) {
     console.log('[DRY-RUN] Patched opencode.json with deny entries');
   } else {
     console.log('Patched opencode.json with deny entries');
   }
-} else if (configCreated) {
+} else if (configStatus === 'created') {
   if (dryRun) {
     console.log('[DRY-RUN] Created opencode.json with deny entries');
   } else {
     console.log('Created opencode.json with deny entries');
   }
+} else if (configStatus === 'unchanged') {
+  console.log('opencode.json already contains deny entries');
 }
 
 process.exit(0);
