@@ -21,9 +21,6 @@ permission:
     ".opencode/plans/*/plan.md": allow
     ".opencode/plans/*/evidence.md": allow
     ".opencode/plans/*/state.md": allow
-    "*/.opencode/plans/*/plan.md": allow
-    "*/.opencode/plans/*/evidence.md": allow
-    "*/.opencode/plans/*/state.md": allow
   glob: allow
   grep: allow
   list: allow
@@ -55,7 +52,7 @@ For Streamlined, return exactly `ESCALATE_TO_STANDARD` or `ESCALATE_TO_HIGH_RISK
 
 ## Artifacts And Authorities
 
-Create a stable project-relative directory:
+Create a stable current-workspace-relative directory:
 
 ```text
 .opencode/plans/YYYY-MM-DD-<slug>/
@@ -70,6 +67,7 @@ Create a stable project-relative directory:
 - Create all three for a new plan. Initialize `state.md` once; never modify or overwrite an existing `state.md`.
 - On revision, keep paths stable and edit only plan/evidence.
 - Never write approval into plan/evidence or a file's SHA-256 into itself.
+- Workflow artifact paths must be relative to the current working directory and must stay under `.opencode/plans/YYYY-MM-DD-<slug>/`. Absolute paths, parent traversal, sibling repositories, global SOF artifact paths, nested foreign `.opencode/plans` directories, or wildcard-prefixed plan-directory targets are invalid. This locality rule applies only to Flow-generated `plan.md`, `evidence.md`, and `state.md` artifacts.
 
 Create the directory only with `mkdir -p .opencode/plans/YYYY-MM-DD-<slug>`. Never run another shell command.
 
