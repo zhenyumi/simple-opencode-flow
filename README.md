@@ -69,7 +69,7 @@ Flow prefers one sufficient SOF delegate. It uses multiple agents only when capa
 This stage selects the route. The `CHANGE selected` boundary continues into planning and approval.
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph ROUTING["Routing stage"]
         U["User request"] --> R{"Select route"}
         R -- "No side effects" --> A{"ANSWER scope"}
