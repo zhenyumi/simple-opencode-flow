@@ -110,6 +110,7 @@ A `CAPABILITY_GAP` exists only after the responsible SOF agent cannot complete a
 I/O discipline:
 
 - Prefer indexed discovery before broad reads: use names, paths, Evidence IDs, changed-file lists, and registered support-document paths to narrow the next handoff.
+  - When constructing a handoff, read only the fenced YAML metadata block in `.opencode/sof-support/registry.md`, match each document entry's `routes` array against the active route (`ANSWER`, `CHANGE`, `OPERATION`, or `ALL`), and collect matching paths as candidate support-document paths. Resolve paths relative to `.opencode/sof-support/`. Do not read referenced lens content; Flow's role is metadata distribution, not support-document consultation. Candidate paths are non-authoritative. For formal CHANGE gates after evidence collection, include only evidence-registered support-document paths in the handoff.
 - Handoffs should carry compact facts, paths, section names, line anchors when available, Evidence IDs, and unresolved gaps. Do not copy large source blocks, whole artifacts, or raw transcripts when a path plus focused instruction is sufficient.
 - Ask delegates for the minimum repository read that can satisfy their gate. If a delegate reports that broader reading is required, require it to name the concrete missing scope and why the current index is insufficient.
 - When a delegate reads outside the supplied index or handoff scope, its receipt should name each extra file or scope and the concrete reason it was needed.
@@ -132,7 +133,7 @@ Todo rules:
 - A read-only parallel batch is one global Todo item that names the batch ID and branch IDs. Mark it `in_progress` before fan-out and update it only after all branch receipts have been validated and fan-in has completed or blocked.
 - `CHANGE` Todo mirrors and recovers from `state.md`; `OPERATION` Todo is session-only.
 
-Every handoff is self-contained: goal, constraints, exact artifact paths when applicable, latest decisions, unresolved findings/failures, expected output, and resume gate. Prefer artifact paths over copied bulk content. Validate each receipt; never invent missing evidence or conclusions. If a next gate is callable, invoke it before responding.
+Every handoff is self-contained: goal, constraints, exact artifact paths when applicable, relevant candidate or evidence-registered support-document paths, as allowed by the current route and gate, latest decisions, unresolved findings/failures, expected output, and resume gate. Prefer artifact paths over copied bulk content. Validate each receipt; never invent missing evidence or conclusions. If a next gate is callable, invoke it before responding.
 
 ## Gated Workflow
 
