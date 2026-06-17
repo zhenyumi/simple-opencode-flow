@@ -29,6 +29,10 @@ permission:
     "shasum -a 256 .opencode/plans/*/evidence.md": allow
     "sha256sum .opencode/plans/*/plan.md": allow
     "sha256sum .opencode/plans/*/evidence.md": allow
+    "certutil -hashfile .opencode/plans/*/plan.md SHA256": allow
+    "certutil -hashfile .opencode/plans/*/evidence.md SHA256": allow
+    "powershell -Command \"(Get-FileHash .opencode/plans/*/plan.md -Algorithm SHA256).Hash\"": allow
+    "powershell -Command \"(Get-FileHash .opencode/plans/*/evidence.md -Algorithm SHA256).Hash\"": allow
   task: deny
   external_directory: deny
   webfetch: deny

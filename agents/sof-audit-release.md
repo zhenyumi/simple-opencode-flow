@@ -34,6 +34,10 @@ permission:
     "shasum -a 256 .opencode/plans/*/evidence.md": allow
     "sha256sum .opencode/plans/*/plan.md": allow
     "sha256sum .opencode/plans/*/evidence.md": allow
+    "certutil -hashfile .opencode/plans/*/plan.md SHA256": allow
+    "certutil -hashfile .opencode/plans/*/evidence.md SHA256": allow
+    "powershell -Command \"(Get-FileHash .opencode/plans/*/plan.md -Algorithm SHA256).Hash\"": allow
+    "powershell -Command \"(Get-FileHash .opencode/plans/*/evidence.md -Algorithm SHA256).Hash\"": allow
   task: deny
   external_directory: deny
   webfetch: deny
@@ -65,7 +69,16 @@ Confirm:
 4. Fresh repository state matches the verified state and contains no unexplained or out-of-scope file.
 5. Establish release/publication context before proceeding: destination, intended action, visibility, and expected included material. Return `BLOCKED` if any are unknown.
 6. Independently recompute plan and evidence SHA-256 hashes for only the current approved tuple's named plan/evidence artifacts. Do not discover, scan, or hash unrelated plan, evidence, or state files. Confirm the hashes match the approved tuple.
-7. Perform concise publication-risk checks: scan the repository diff and working tree for secrets, credentials, private/local paths (`.env`, `.env.*`, `.Renviron`, `*credential*`, `*secret*`), raw data, generated outputs, cache files, IDE files, unpublished identifiers, and unintended public material.
+7. Perform concise publication-risk checks: scan the repository diff and working tree for:
+   - secrets, API keys, tokens, credentials (patterns: `*_KEY*`, `*_TOKEN*`, `*_SECRET*`, `*_API*`, `*_PASSWORD*`)
+   - private key files (`*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.ppk`)
+   - local absolute paths (`/Users/`, `/home/`, `C:\Users\`) and usernames embedded in paths
+   - private IP addresses (`192.168.*`, `10.*`, `172.16-31.*`), internal URLs, and hostnames
+   - environment/credential files (`.env`, `.env.*`, `.Renviron`, `*credential*`, `*secret*`)
+   - raw datasets, generated outputs, build artifacts
+   - cache files (`.cache/`, `__pycache__/`), IDE/editor artifacts (`.vscode/`, `.idea/`)
+   - unpublished identifiers, unintended local workflow artifacts
+   - any untracked file that would appear in the requested release action
 8. No secret, unsafe artifact, incompatible dependency state, unresolved migration, irreproducible output, destructive requirement, or ownership ambiguity remains.
 
 Do not repeat code review or verification. Missing, stale, contradictory, or indeterminate evidence is `BLOCKED`.
