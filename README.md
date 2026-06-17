@@ -1,6 +1,6 @@
 # Simple OpenCode Flow (SOF) Agents
 
-Simple OpenCode Flow is a native OpenCode Markdown agent distribution built around a restricted `flow` orchestrator. Flow routes questions and bounded operations to SOF auxiliary agents, while project changes use evidence-based planning, exact approval, independent review, and fresh verification.
+Simple OpenCode Flow is a native OpenCode Markdown agent distribution built around a restricted `flow` orchestrator. Flow routes questions and bounded operations to SOF auxiliary agents, fans out independent read-only investigation when safe, and uses evidence-based planning, exact approval, independent review, and fresh verification for project changes.
 
 Use Flow when you want one entry point that can route answers, explicit repository operations, or safely coordinate a reviewed change without allowing a general-purpose agent to bypass formal gates.
 
@@ -24,7 +24,7 @@ In OpenCode, select the `flow` primary agent, then describe the result you want.
 
 ### Ask Or Inspect
 
-Questions and read-only investigation use the `ANSWER` route. Flow delegates to `sof-answer-repository` for local repository answers or `sof-research-source` for authoritative external sources without starting a planning workflow.
+Questions and read-only investigation use the `ANSWER` route. Flow delegates to `sof-answer-repository` for local repository answers or `sof-research-source` for authoritative external sources without starting a planning workflow. When local and external reads are independent, Flow may run them as a read-only parallel batch and then synthesize the compact results.
 
 ```text
 Explain how authentication configuration is loaded and identify the relevant files.
@@ -58,11 +58,11 @@ Approve execution of the current approved plan.
 
 | Route | Use when | Default behavior |
 | --- | --- | --- |
-| `ANSWER` | Questions, searches, explanations, or research with no side effects | Delegate to `sof-answer-repository` or `sof-research-source` |
+| `ANSWER` | Questions, searches, explanations, or research with no side effects | Delegate to `sof-answer-repository` or `sof-research-source`; use a read-only parallel batch for independent multi-source reads |
 | `OPERATION` | An explicitly requested bounded side effect that does not modify project content or behavior | Create Todo and delegate an exact Operation Contract to `sof-execute-operation` |
 | `CHANGE` | Any source, configuration, documentation, dependency, design, behavior, or validation-strategy modification | Run the gated SOF workflow |
 
-Flow prefers one sufficient SOF delegate. It uses multiple agents only when capabilities, independence, or risk require them. The auxiliary answer and operation agents are not formal `CHANGE` workflow gates. An active `CHANGE` workflow takes precedence over new operations, and a verified change is audited before a requested release operation is executed.
+Flow prefers one sufficient SOF delegate. It uses multiple agents only when capabilities, independence, or risk require them. Read-only parallel batches are limited to independent no-side-effect reads and must fan in to compact synthesis before any downstream handoff. The auxiliary answer and operation agents are not formal `CHANGE` workflow gates. An active `CHANGE` workflow takes precedence over new operations, and a verified change is audited before a requested release operation is executed.
 
 ### Request Routing
 
@@ -72,10 +72,17 @@ This stage selects the route. The `CHANGE selected` boundary continues into plan
 flowchart LR
     subgraph ROUTING["Routing stage"]
         U["User request"] --> R{"Select route"}
-        R -- "No side effects" --> A["ANSWER<br/>read-only delegate"]
+        R -- "No side effects" --> A{"ANSWER scope"}
+        A -- "One sufficient read" --> AD["Read-only delegate"]
+        A -- "Independent reads" --> PB["Read-only parallel batch"]
+        PB --> L["sof-answer-repository<br/>local branch"]
+        PB --> S["sof-research-source<br/>source branch"]
+        L --> SYN["sof-answer-repository<br/>fan-in synthesis"]
+        S --> SYN
+        AD --> AR["Auxiliary answer result"]
+        SYN --> AR
         R -- "Exact bounded side effect" --> O["OPERATION<br/>Todo + exact contract"]
         R -- "Project content or behavior changes" --> C["CHANGE selected"]
-        A --> AR["Auxiliary answer result"]
         O --> OR["Auxiliary operation result"]
     end
     C -. "Continue" .-> PS["Planning and approval stage"]
@@ -87,6 +94,7 @@ flowchart LR
 - **Read sources before citing them**: a path, URL, title, package, skill, or reference is not evidence until relevant content was accessed.
 - **Minimum sufficient complexity**: use the fewest agents, artifacts, gates, and checks sufficient for the request and risk.
 - **Exact approval before execution**: a `CHANGE` requires an approved exact plan/evidence tuple and explicit user approval; an `OPERATION` executes only its explicitly approved exact targets and effects.
+- **Controlled read-only parallelism**: independent read-only branches may run in parallel only when Flow can fan them in to one compact, traceable context before the next handoff.
 
 Flow's user-visible safety boundaries:
 
@@ -94,6 +102,7 @@ Flow's user-visible safety boundaries:
 - `sof-answer-repository` and `sof-execute-operation` are auxiliary agents for `ANSWER` and `OPERATION`; they do not create planning artifacts or enter the gated `CHANGE` workflow.
 - An Operation Contract defines exact targets and effects, prohibited project-content changes, prechecks, success evidence, and stop conditions.
 - `OPERATION`, `CHANGE`, and multi-agent `ANSWER` routes maintain global Todo progress. Each `sof-*` agent may also maintain a local Todo for its own work.
+- Read-only parallel batches may use only `sof-answer-repository`, `sof-research-source`, or `sof-explore-repository`; they never parallelize implementation, review, verification, audit, artifact writes, or `state.md` updates.
 - Flow reads only enough context to route work, construct handoffs, validate receipts, recover state, and edit active current-workspace `.opencode/plans/*/state.md` receipts. It does not turn those reads into its own answers, operations, or formal-gate conclusions.
 - Flow resolves capability, authorization, and availability through delegates. Flow's own missing specialized tools are not workflow blockers.
 
@@ -112,8 +121,8 @@ Every `CHANGE` uses a profile matched to its scope and risk:
 | Profile | Use when | Planning behavior | Early implementation-unit review |
 | --- | --- | --- | --- |
 | `STREAMLINED` | One clear low-risk unit with known scope and no material unknowns or shared/high-risk behavior | Targeted inspection and plan writing | None; integrated review is still required |
-| `STANDARD` | Normal changes that do not qualify as Streamlined or High Risk | Repository exploration, design, plan writing, and plan review | Required when evidence or dependencies justify it |
-| `HIGH_RISK` | Security, privacy, permissions, migrations, irreversible operations, public/shared contracts, dependencies, data formats, or material unknowns | Complete risk-focused planning route | Required for every risk-related or dependency-foundational unit |
+| `STANDARD` | Normal changes that do not qualify as Streamlined or High Risk | Repository exploration, optional read-only evidence shards, design, plan writing, and plan review | Required when evidence or dependencies justify it |
+| `HIGH_RISK` | Security, privacy, permissions, migrations, irreversible operations, public/shared contracts, dependencies, data formats, or material unknowns | Complete risk-focused planning route with optional read-only evidence shards | Required for every risk-related or dependency-foundational unit |
 
 When Streamlined planning discovers ambiguity or risk, it escalates before creating artifacts. If execution invalidates the current profile, Flow stops, revises the artifacts, and requires approval of a new exact tuple.
 
@@ -127,8 +136,15 @@ flowchart TD
         direction TB
         C["CHANGE selected"] --> P{"Profile"}
         P -- "STREAMLINED" --> W["sof-write-plan"]
-        P -- "STANDARD / HIGH_RISK" --> E["sof-explore-repository"]
-        E --> D["sof-design-change"]
+        P -- "STANDARD / HIGH_RISK" --> EVS{"Evidence scope"}
+        EVS -- "One sufficient read" --> E["sof-explore-repository"]
+        EVS -- "Independent read-only shards" --> EB["Read-only parallel evidence batch"]
+        EB --> ER["sof-explore-repository<br/>repo shard"]
+        EB --> XR["sof-research-source<br/>source shard"]
+        E --> FE["Fan-in compact evidence"]
+        ER --> FE
+        XR --> FE
+        FE --> D["sof-design-change"]
         D --> W
         W --> A[["Planning artifacts"]]
         A --> R["sof-review-plan"]
@@ -136,7 +152,7 @@ flowchart TD
         R -- "Plan approved" --> WAIT["Await explicit execution approval"]
         WAIT -- "User authorizes exact tuple" --> X["Execution authorized"]
     end
-    X -. "Continue" .-> ES["Execution and verification stage"]
+    X -. "Continue" .-> EXS["Execution and verification stage"]
 ```
 
 ### Execute And Verify
@@ -160,7 +176,7 @@ flowchart TD
     end
 ```
 
-Each approved implementation unit uses a fresh `sof-implement-task` invocation. Early unit review is added when the selected profile, evidence, dependencies, or new implementation findings require it. Each code-review scope starts with a complete attempt `1`; finding-only fixes receive focused follow-up review, while material-basis changes restart complete review at attempt `1`. Attempts are capped at three and total reviewer calls per scope at five.
+Each approved implementation unit uses a fresh `sof-implement-task` invocation in dependency order. Early unit review is added when the selected profile, evidence, dependencies, or new implementation findings require it. Each code-review scope starts with a complete attempt `1`; finding-only fixes receive focused follow-up review, while material-basis changes restart complete review at attempt `1`. Attempts are capped at three and total reviewer calls per scope at five. Implementation, review, verification, and audit are not parallelized.
 
 ### Workflow Artifacts
 
@@ -188,10 +204,10 @@ Within the same session, Flow distinguishes continuing the current approved plan
 | Agent | Role |
 | --- | --- |
 | `flow` | Restricted orchestrator and context manager for routing, handoffs, global Todo, gates, and compact `state.md` receipts |
-| `sof-answer-repository` | Auxiliary read-only repository answerer and synthesis agent for `ANSWER` |
+| `sof-answer-repository` | Auxiliary read-only repository answerer and synthesis agent for `ANSWER`, including read-only parallel batch fan-in |
 | `sof-execute-operation` | Auxiliary executor for exact non-project-content `OPERATION` contracts |
-| `sof-research-source` | Read authoritative external sources for standalone questions or concrete planning evidence gaps |
-| `sof-explore-repository` | Collect compact repository evidence for Standard and High Risk planning |
+| `sof-research-source` | Read authoritative external sources for standalone questions or concrete planning evidence gaps, including focused parallel source branches |
+| `sof-explore-repository` | Collect compact repository evidence for Standard and High Risk planning, including focused parallel evidence shards |
 | `sof-design-change` | Define the smallest evidence-backed Standard or High Risk design |
 | `sof-write-plan` | Create or revise planning artifacts and initialize `state.md` |
 | `sof-review-plan` | Independently review and approve exact plan/evidence revisions |
@@ -209,6 +225,8 @@ Support documents are optional, non-authoritative references. Project and `--tar
 ### Terminology
 
 - **Subagent invocation**: one focused-agent call made by Flow.
+- **Read-only parallel batch**: a Flow-managed set of independent no-side-effect read branches with explicit branch IDs, scopes, expected receipts, and one fan-in synthesis before downstream handoff.
+- **Evidence shard**: one focused read-only repository or source branch in a planning evidence batch, using Flow-assigned ID prefixes to avoid evidence collisions.
 - **Capability gap**: one missing tool capability that preserves the responsible SOF gate.
 - **Implementation unit**: one executable item in the approved `plan.md`.
 - **Implementation-unit review**: early independent code review of one completed unit when evidence requires it.
