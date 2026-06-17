@@ -69,7 +69,7 @@ Flow prefers one sufficient SOF delegate. It uses multiple agents only when capa
 This stage selects the route. The `CHANGE selected` boundary continues into planning and approval.
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph ROUTING["Routing stage"]
         U["User request"] --> R{"Select route"}
         R -- "No side effects" --> A{"ANSWER scope"}
@@ -95,6 +95,7 @@ flowchart TD
 - **Minimum sufficient complexity**: use the fewest agents, artifacts, gates, and checks sufficient for the request and risk.
 - **Exact approval before execution**: a `CHANGE` requires an approved exact plan/evidence tuple and explicit user approval; an `OPERATION` executes only its explicitly approved exact targets and effects.
 - **Controlled read-only parallelism**: independent read-only branches may run in parallel only when Flow can fan them in to one compact, traceable context before the next handoff.
+- **I/O discipline**: narrow reads with Evidence IDs, changed-file lists, paths, and Repository Access Index entries before opening more files or passing larger handoffs.
 
 Flow's user-visible safety boundaries:
 
@@ -103,6 +104,7 @@ Flow's user-visible safety boundaries:
 - An Operation Contract defines exact targets and effects, prohibited project-content changes, prechecks, success evidence, and stop conditions.
 - `OPERATION`, `CHANGE`, and multi-agent `ANSWER` routes maintain global Todo progress. Each `sof-*` agent may also maintain a local Todo for its own work.
 - Read-only parallel batches may use only `sof-answer-repository`, `sof-research-source`, or `sof-explore-repository`; they never parallelize implementation, review, verification, audit, artifact writes, or `state.md` updates.
+- Plans include a Repository Access Index so implementers and reviewers can start from required authority sections, required repository files, optional follow-up files, prohibited scope expansion, expected changed files, verification commands, and protected paths without broad rediscovery.
 - Flow reads only enough context to route work, construct handoffs, validate receipts, recover state, and edit active current-workspace `.opencode/plans/*/state.md` receipts. It does not turn those reads into its own answers, operations, or formal-gate conclusions.
 - Flow resolves capability, authorization, and availability through delegates. Flow's own missing specialized tools are not workflow blockers.
 
@@ -227,6 +229,7 @@ Support documents are optional, non-authoritative references. Project and `--tar
 - **Subagent invocation**: one focused-agent call made by Flow.
 - **Read-only parallel batch**: a Flow-managed set of independent no-side-effect read branches with explicit branch IDs, scopes, expected receipts, and one fan-in synthesis before downstream handoff.
 - **Evidence shard**: one focused read-only repository or source branch in a planning evidence batch, using Flow-assigned ID prefixes to avoid evidence collisions.
+- **Repository Access Index**: a plan section mapping each unit to required authority sections, required repository files, optional follow-up files, prohibited scope expansion, expected changed files, verification commands, and protected paths.
 - **Capability gap**: one missing tool capability that preserves the responsible SOF gate.
 - **Implementation unit**: one executable item in the approved `plan.md`.
 - **Implementation-unit review**: early independent code review of one completed unit when evidence requires it.

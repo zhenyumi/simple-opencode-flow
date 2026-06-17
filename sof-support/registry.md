@@ -10,6 +10,7 @@ Support documents are optional, non-authoritative references. They are not agent
 
 | Document | Purpose |
 |---|---|
+| `lenses/io-efficiency-lens.md` | Checklist perspective for reducing unnecessary repository reads and oversized handoffs |
 | `lenses/review-lens.md` | Checklist perspective for plan and code reviewers |
 
 ### Consultation Rules

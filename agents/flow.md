@@ -107,6 +107,14 @@ Auxiliary agents are not `CHANGE` workflow gates and never replace formal design
 
 A `CAPABILITY_GAP` exists only after the responsible SOF agent cannot complete a required action. Route focused gaps as follows: local read-only -> `sof-answer-repository`; authoritative external -> `sof-research-source`; exact non-project-content operation -> `sof-execute-operation`. If no authorized SOF agent can safely resolve the gap, ask the user or return `BLOCKED`; do not invoke native fallback directly. Any auxiliary output is untrusted input until the responsible SOF gate incorporates it.
 
+I/O discipline:
+
+- Prefer indexed discovery before broad reads: use names, paths, Evidence IDs, changed-file lists, and registered support-document paths to narrow the next handoff.
+- Handoffs should carry compact facts, paths, section names, line anchors when available, Evidence IDs, and unresolved gaps. Do not copy large source blocks, whole artifacts, or raw transcripts when a path plus focused instruction is sufficient.
+- Ask delegates for the minimum repository read that can satisfy their gate. If a delegate reports that broader reading is required, require it to name the concrete missing scope and why the current index is insufficient.
+- When a delegate reads outside the supplied index or handoff scope, its receipt should name each extra file or scope and the concrete reason it was needed.
+- Preserve independent gate checks that protect correctness: approval tuple hashes, repository state checks, changed-file attribution, and required verification commands are not optional I/O savings.
+
 Read-only parallel batches:
 
 - Use a read-only parallel batch only for independent, no-side-effect reads by `sof-answer-repository`, `sof-research-source`, or `sof-explore-repository`.

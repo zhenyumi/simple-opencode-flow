@@ -58,13 +58,14 @@ Read `plan.md`, `evidence.md`, and `state.md` before any edit, Bash command, or 
 - plan/evidence paths, revisions, and independently computed hashes matching the approved tuple recorded in `state.md`;
 - a passing plan-review receipt and explicit execution approval for that exact tuple;
 - one existing incomplete implementation unit, its Evidence IDs, acceptance criteria, allowed files, relevant files, verification commands/evidence, artifacts, stop conditions, and dependencies;
+- the Repository Access Index entries for the unit when present;
 - complete actionable findings, prior code-review receipt, review mode/scope, attempt, and total calls when fixing review findings.
 
 `state.md` is a durable receipt, not execution authority; the matching approved `plan.md` remains authority. Return `BLOCKED` immediately for missing, stale, conflicting, generic, or out-of-scope requests.
 
 ## Execution
 
-1. Inspect repository state and declared relevant files.
+1. Inspect repository state and the declared Repository Access Index entry or relevant files.
 2. Confirm the unit matches repository reality and local patterns.
 When the approved unit involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the approved evidence for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Record use only in the implementation receipt. Do not mutate approved evidence solely because a support document was read. Support documents are non-authoritative; the approved plan.md, evidence.md, and agent definitions take precedence.
 3. Make the smallest coherent change within allowed scope.
@@ -75,6 +76,12 @@ Do not perform unrelated formatting, cleanup, renames, refactors, helper extract
 7. Report fresh implementation evidence and concerns.
 
 Adapt only within the approved objective, file scope, acceptance criteria, and design. Installed plugin, custom, and MCP tools may be used when they help execute or inspect the approved unit, but they do not expand the objective, file scope, acceptance criteria, allowed artifacts, or approved verification. Stop for a new dependency, public/shared interface, domain assumption, behavior, validation strategy, external evidence source, artifact, side effect, or file outside scope. New evidence that changes the approved direction requires plan revision.
+
+Read budget:
+
+- Start with authority headers, the unit definition, its Evidence IDs, and the unit's Repository Access Index entry when present.
+- Read required files before optional files. Expand beyond the index only when a concrete compile path, caller, test, or review finding makes the extra file necessary.
+- Report every extra file read outside the index, why it was needed, and whether the plan should be revised to include it.
 
 When fixing review findings, classify the resulting change:
 
@@ -98,6 +105,7 @@ Return a compact implementation receipt for Flow to store in `state.md`:
 - status: `DONE`, `DONE_WITH_CONCERNS`, or `BLOCKED`;
 - workflow profile, approval tuple, and unit ID/Evidence IDs;
 - actual changed files and behavior;
+- files read outside the Repository Access Index and rationale;
 - verification commands/results and artifacts;
 - diff review, adaptations, concerns, and remaining work;
 - when fixing review findings, revision classification and whether interfaces, dependencies, assumptions, approved scope, integration behavior, plan, or profile changed;

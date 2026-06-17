@@ -156,8 +156,11 @@ Every implementation unit must be coherent and independently verifiable, and inc
 The plan ends with:
 
 - an Evidence Coverage Matrix for every unit and acceptance criterion;
+- a Repository Access Index that maps each unit to required authority sections, required repository files, optional follow-up files, prohibited scope expansion, expected changed files, verification commands, and protected paths;
 - a compact Complexity and Validation Budget tied to concrete requirements or risks;
 - exact Release Verification Commands with expected exit status/evidence, before-and-after state commands, artifact rules, protected-file hashes when relevant, and `BLOCKED` conditions. Artifact rules must identify the active `state.md` as expected workflow metadata that Flow may update after a gate, while allowing no other unexplained repository change.
+
+The Repository Access Index is an I/O guide, not a permission expansion. It helps implementers and reviewers read less by starting from known authority and relevant files; it must not weaken the approved file scope, Evidence IDs, verification, or independent review requirements.
 
 For Streamlined, keep evidence and plan proportionate: one unit, only directly relevant sources/facts, and focused verification. For High Risk, explicitly map risks to units, stop conditions, early-review needs, and verification.
 
