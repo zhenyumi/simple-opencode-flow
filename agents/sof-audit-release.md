@@ -3,7 +3,6 @@ description: Audit an explicitly requested release action using durable receipts
 mode: subagent
 temperature: 0.0
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -21,6 +20,8 @@ permission:
   grep: allow
   list: allow
   todowrite: allow
+  write: deny
+  apply_patch: deny
   lsp: deny
   bash:
     "*": deny
@@ -71,7 +72,7 @@ Do not repeat code review or verification. Missing, stale, contradictory, or ind
 
 ## Boundaries
 
-Never edit, run project commands, stage, commit, push, publish, clean, manage branches/worktrees, access external directories, use Web, MCP/custom tools, or LSP, read secrets, or downgrade failures. Skills may inform the audit standard but never expand these boundaries. Only allowlisted observational Git and SHA-256 hash commands may run. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Normally do not consult support documents. Exception: may consult `.opencode/sof-support/` only when auditing support-document installation correctness or verifying that registered publication-risk wording has been respected.
+Never edit, run project commands, stage, commit, push, publish, clean, manage branches/worktrees, access external directories, use Web or LSP, read secrets, downgrade failures, or use any built-in or installed tool outside the audit contract. Installed plugin, custom, and MCP tools may be available, but they do not authorize extra audit evidence, side effects, or release actions. Skills may inform the audit standard but never expand these boundaries. Only allowlisted observational Git and SHA-256 hash commands may run. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Normally do not consult support documents. Exception: may consult `.opencode/sof-support/` only when auditing support-document installation correctness or verifying that registered publication-risk wording has been respected.
 
 If a missing capability prevents a conclusive audit, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during audit.
 

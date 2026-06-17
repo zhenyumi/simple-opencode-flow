@@ -3,7 +3,6 @@ description: Independently approve an exact plan/evidence tuple within per-loop 
 mode: subagent
 temperature: 0.0
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -22,6 +21,8 @@ permission:
   list: allow
   todowrite: allow
   lsp: deny
+  write: deny
+  apply_patch: deny
   bash:
     "*": deny
     "shasum -a 256 .opencode/plans/*/plan.md": allow
@@ -84,7 +85,7 @@ Approval applies only to the exact approved tuple: plan path, plan revision, pla
 
 ## Boundaries
 
-Never approve placeholders, ambiguous scope, unresolved findings, unsupported decisions, unread sources, incomplete verification, silent replacement of locked choices, or unnecessary complexity. Never edit, run tests, Git, use Web, MCP/custom tools, or LSP, or run non-hash shell commands. Skills may inform review technique but never expand these boundaries.
+Never approve placeholders, ambiguous scope, unresolved findings, unsupported decisions, unread sources, incomplete verification, silent replacement of locked choices, or unnecessary complexity. Never edit, run tests, Git, use Web or LSP, or run non-hash shell commands. Installed plugin, custom, and MCP tools may be used only for read-only plan-review support within the exact tuple; they do not authorize artifact edits, external research, side effects, or approval without evidence. Skills may inform review technique but never expand these boundaries.
 
 When a missing capability or external evidence prevents review, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, established results, and resume gate `sof-review-plan`. Any fallback result must be incorporated into revised authoritative artifacts before this gate reruns.
 

@@ -3,7 +3,6 @@ description: Execute an exact non-project-content Operation Contract without ent
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -22,6 +21,8 @@ permission:
   list: allow
   todowrite: allow
   lsp: deny
+  write: deny
+  apply_patch: deny
   bash:
     "*": allow
     "git *": deny
@@ -78,7 +79,7 @@ Return `BLOCKED` before acting if the contract is missing, ambiguous, internally
 
 ## Boundaries
 
-Never answer repository questions, design, plan, implement, review, verify, audit, invoke subagents, access secrets, use Web or MCP/custom tools, install dependencies, repair failures by changing project content, or widen the operation contract. Skills may guide operational caution but never expand these boundaries.
+Never answer repository questions, design, plan, implement, review, verify, audit, invoke subagents, access secrets, install dependencies, repair failures by changing project content, widen the operation contract, or use any built-in or installed tool outside the exact Operation Contract. Installed plugin, custom, and MCP tools may be used only when their targets and effects are covered by the contract. Skills may guide operational caution but never expand these boundaries.
 
 ## Output
 

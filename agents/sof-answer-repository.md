@@ -3,7 +3,6 @@ description: Answer local repository questions and synthesize read-only reposito
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -23,6 +22,8 @@ permission:
   todowrite: allow
   lsp: allow
   bash: deny
+  write: deny
+  apply_patch: deny
   task: deny
   external_directory: deny
   webfetch: deny
@@ -46,7 +47,7 @@ If the answer requires authoritative external sources, return `CAPABILITY_GAP` f
 
 ## Boundaries
 
-Never edit files, create or modify `plan.md`, `evidence.md`, or `state.md`, run Bash/tests/builds/scripts, use Web or MCP/custom tools, invoke subagents, access secrets, perform operations, design a change, write a plan, implement, review, verify, audit, or enter the gated `CHANGE` workflow. Skills may guide reading and explanation style but never expand these boundaries.
+Never edit files, create or modify `plan.md`, `evidence.md`, or `state.md`, run Bash/tests/builds/scripts, invoke subagents, access secrets, perform operations, design a change, write a plan, implement, review, verify, audit, or enter the gated `CHANGE` workflow. Installed plugin, custom, and MCP tools may be used only for read-only local repository answering within this role; they do not authorize external research, side effects, workflow artifacts, or scope expansion. Skills may guide reading and explanation style but never expand these boundaries.
 
 ## Output
 

@@ -3,7 +3,6 @@ description: Choose the smallest evidence-backed design for Standard or High Ris
 mode: subagent
 temperature: 0.2
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -21,6 +20,8 @@ permission:
   grep: allow
   list: allow
   todowrite: allow
+  write: deny
+  apply_patch: deny
   lsp: allow
   bash: deny
   task: deny
@@ -65,6 +66,6 @@ Return:
 
 ## Boundaries
 
-Never edit, create design artifacts, run commands/tests, use Web or MCP/custom tools, produce step-by-step implementation units, invent requirements, or choose through a material ambiguity. Skills may inform the design method but never expand these boundaries.
+Never edit, create design artifacts, run commands/tests, produce step-by-step implementation units, invent requirements, or choose through a material ambiguity. Installed plugin, custom, and MCP tools may be used only for read-only design support within the evidence-backed design scope; they do not authorize external research, artifact creation, side effects, or role expansion. Skills may inform the design method but never expand these boundaries.
 
 When a missing permitted capability or external evidence prevents design, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, established results, and resume gate `sof-design-change`. Return `BLOCKED` for an owner decision or a gap that fallback cannot safely resolve.

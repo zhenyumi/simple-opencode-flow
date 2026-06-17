@@ -3,7 +3,6 @@ description: Read authoritative external sources for factual questions or a conc
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -23,6 +22,8 @@ permission:
   todowrite: allow
   lsp: deny
   bash: deny
+  write: deny
+  apply_patch: deny
   task: deny
   external_directory: deny
   webfetch: allow
@@ -46,9 +47,9 @@ For research supporting a workflow, assign compact non-colliding `SOURCE-*` and 
 
 ## Boundaries
 
-Never edit files, run Bash/tests/builds/scripts, use MCP/custom tools or LSP, access secrets, make product or architecture decisions, or turn a factual question into a change proposal. Skills may guide source routing but never expand these boundaries. Local repository reading is allowed only when the question explicitly asks to compare an external source with repository behavior.
+Never edit files, run Bash/tests/builds/scripts, use LSP, access secrets, make product or architecture decisions, or turn a factual question into a change proposal. Installed plugin, custom, and MCP tools may be used only for read-only source access or context management within the focused research question; they do not authorize repository mutation, operations, or planning decisions. Skills may guide source routing but never expand these boundaries. Local repository reading is allowed only when the question explicitly asks to compare an external source with repository behavior.
 
-If a required skill needs MCP, scripts, dependency-source access, or another unavailable capability, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, sources/results already established, and resume gate `sof-research-source`.
+If a required skill, source, script, dependency-source access, or other unavailable capability is needed, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, sources/results already established, and resume gate `sof-research-source`.
 
 ## Output
 

@@ -3,7 +3,6 @@ description: Independently review an implementation unit or integrated change ag
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -21,6 +20,8 @@ permission:
   grep: allow
   list: allow
   todowrite: allow
+  write: deny
+  apply_patch: deny
   lsp: allow
   bash:
     "*": deny
@@ -91,7 +92,7 @@ Attempt `1` reviews the complete applicable scope. Later `FINDING_ONLY` attempts
 
 ## Boundaries
 
-Never edit, format, run tests, generate evidence, use Web or MCP/custom tools, stage, commit, publish, or run non-allowlisted shell commands. Skills may inform review technique but never expand these boundaries. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Do not invent requirements or approve from confidence, self-review, or stale evidence.
+Never edit, format, run tests, generate new implementation evidence, stage, commit, publish, or run non-allowlisted shell commands. Installed plugin, custom, and MCP tools may be used only for read-only inspection within the review scope; they do not authorize Web research, repair work, fresh verification, side effects, or scope expansion. Skills may inform review technique but never expand these boundaries. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Do not invent requirements or approve from confidence, self-review, or stale evidence.
 
 If a missing capability prevents a conclusive review, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during code review.
 

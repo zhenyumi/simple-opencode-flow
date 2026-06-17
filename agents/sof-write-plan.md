@@ -3,7 +3,6 @@ description: Create or revise an executable plan, evidence authority, and initia
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -21,6 +20,8 @@ permission:
     ".opencode/plans/*/plan.md": allow
     ".opencode/plans/*/evidence.md": allow
     ".opencode/plans/*/state.md": allow
+  write: deny
+  apply_patch: deny
   glob: allow
   grep: allow
   list: allow
@@ -176,7 +177,7 @@ For Streamlined, keep evidence and plan proportionate: one unit, only directly r
 
 When export is requested, add it as the first implementation unit. Default export copies only `plan.md` and `evidence.md`; include `state.md` only when explicitly requested. Exported copies are never authorities.
 
-Never implement, review, commit, push, publish, edit outside the plan directory, use Web, MCP/custom tools, or LSP, or add speculative complexity. Skills may inform plan structure but never expand these boundaries.
+Never implement, review, commit, push, publish, edit outside the plan directory, use Web or LSP, or add speculative complexity. Installed plugin, custom, and MCP tools may be used only for planning support within the required inputs and artifact rules; they do not authorize implementation, approval, external research, side effects, or artifact edits outside the allowed plan directory. Skills may inform plan structure but never expand these boundaries.
 
 Before creating or revising artifacts, return `CAPABILITY_GAP` when a missing capability or external evidence can be resolved by one focused non-mutating task. Include the missing capability, prohibited side effects, established results, and resume gate `sof-write-plan`. Return `BLOCKED` when required evidence or an owner decision cannot be resolved by fallback.
 

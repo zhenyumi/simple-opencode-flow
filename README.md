@@ -97,6 +97,14 @@ Flow's user-visible safety boundaries:
 - Flow reads only enough context to route work, construct handoffs, validate receipts, recover state, and edit active current-workspace `.opencode/plans/*/state.md` receipts. It does not turn those reads into its own answers, operations, or formal-gate conclusions.
 - Flow resolves capability, authorization, and availability through delegates. Flow's own missing specialized tools are not workflow blockers.
 
+### Plugin Compatibility
+
+SOF uses role-driven permissions rather than a global tool allowlist. Installed plugin, custom, and MCP tools inherit OpenCode and user configuration unless a SOF role explicitly restricts a known built-in or SOF-controlled capability.
+
+Flow does not decide whether a plugin should be installed, enabled, allowed, or trusted. If a tool is exposed by the runtime, the responsible SOF agent may use it when the action fits that agent's role, the selected route, and the active approval or operation contract.
+
+Plugin availability does not change workflow authority. `plan.md`, `evidence.md`, `state.md`, route selection, approval tuples, review, verification, audit, stop conditions, and artifact locality rules remain binding. If a plugin has its own subagent, context, or permission settings, configure those in the plugin or OpenCode configuration rather than in Flow.
+
 ## CHANGE Workflow Details
 
 Every `CHANGE` uses a profile matched to its scope and risk:

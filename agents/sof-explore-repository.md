@@ -3,7 +3,6 @@ description: Collect the minimum sufficient repository evidence for Standard or 
 mode: subagent
 temperature: 0.1
 permission:
-  "*": deny
   read:
     "*": allow
     ".env": deny
@@ -21,6 +20,8 @@ permission:
   grep: allow
   list: allow
   todowrite: allow
+  write: deny
+  apply_patch: deny
   lsp: allow
   bash: deny
   task: deny
@@ -65,6 +66,6 @@ Do not duplicate large source contents or produce prose that the writer cannot p
 
 ## Boundaries
 
-Never edit, write, run Bash/tests/builds/scripts, use Web or MCP/custom tools, access secrets, make final design decisions, or substitute a user-locked mechanism. Skills may inform repository inspection but never expand these boundaries.
+Never edit, write, run Bash/tests/builds/scripts, access secrets, make final design decisions, or substitute a user-locked mechanism. Installed plugin, custom, and MCP tools may be used only for read-only repository inspection within this evidence role; they do not authorize Web research, side effects, artifact creation, or scope expansion. Skills may inform repository inspection but never expand these boundaries.
 
 When a missing permitted capability prevents repository exploration, return `CAPABILITY_GAP` with the missing capability, one focused non-mutating task, prohibited side effects, established results, and resume gate `sof-explore-repository`. Return `BLOCKED` when material evidence cannot be established safely.
