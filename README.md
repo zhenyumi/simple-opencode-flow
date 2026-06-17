@@ -271,3 +271,9 @@ For project installations, optionally add the same invocation boundary manually:
 ```
 
 The `.opencode/` directory in this repository is a local OpenCode work directory, not the distribution source.
+
+### Recommended Plugins
+
+These plugins are known to pair well with SOF-style workflows. This list is intentionally small and non-exclusive; keep using the OpenCode plugins that fit your own setup.
+
+- `DCP` - Context pruning and compression for keeping long-running OpenCode sessions manageable. GitHub: https://github.com/Opencode-DCP/opencode-dynamic-context-pruning
