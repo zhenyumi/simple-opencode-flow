@@ -25,7 +25,9 @@ permission:
   write: deny
   apply_patch: deny
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -43,6 +45,8 @@ Require a focused repository question, user constraints, and any prior read-only
 4. Keep the answer scoped to the question. Do not propose a project change unless the user explicitly asks what would need to change.
 5. For synthesis, verify that supplied findings are relevant and identify any missing source access instead of inventing conclusions.
 6. For parallel-batch synthesis, validate branch relevance, source access, scope fit, conflicts, and unresolved gaps before producing one compact answer. Do not pass through raw branch transcripts or unrelated findings.
+
+If Flow supplies support-document paths, read only those exact paths and record any document consulted. Do not consult a registry, search or glob a support root, traverse references, or discover other documents; permission to read the global root grants no such authority. Support documents are non-authoritative and never expand the answer scope.
 
 If the answer requires authoritative external sources, return `CAPABILITY_GAP` for `sof-research-source` with the exact research question and any repository facts already established. If the answer requires repository mutation, return `RECLASSIFY_CHANGE`.
 

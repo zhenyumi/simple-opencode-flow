@@ -39,7 +39,9 @@ permission:
     "powershell -Command \"(Get-FileHash .opencode/plans/*/plan.md -Algorithm SHA256).Hash\"": allow
     "powershell -Command \"(Get-FileHash .opencode/plans/*/evidence.md -Algorithm SHA256).Hash\"": allow
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -85,7 +87,7 @@ Do not repeat code review or verification. Missing, stale, contradictory, or ind
 
 ## Boundaries
 
-Never edit, run project commands, stage, commit, push, publish, clean, manage branches/worktrees, access external directories, use Web or LSP, read secrets, downgrade failures, or use any built-in or installed tool outside the audit contract. Installed plugin, custom, and MCP tools may be available, but they do not authorize extra audit evidence, side effects, or release actions. Skills may inform the audit standard but never expand these boundaries. Only allowlisted observational Git and SHA-256 hash commands may run. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Normally do not consult support documents. Exception: may consult `.opencode/sof-support/` only when auditing support-document installation correctness or verifying that registered publication-risk wording has been respected.
+Never edit, run project commands, stage, commit, push, publish, clean, manage branches/worktrees, access external directories except exact support-document paths allowed below, use Web or LSP, read secrets, downgrade failures, or use any built-in or installed tool outside the audit contract. Installed plugin, custom, and MCP tools may be available, but they do not authorize extra audit evidence, side effects, or release actions. Skills may inform the audit standard but never expand these boundaries. Only allowlisted observational Git and SHA-256 hash commands may run. Git invocations must be observational: never use output-file options, redirection, hooks, aliases, external helpers, or any option that writes or changes repository state. Normally do not consult support documents. When Flow supplies exact project-local or global-installed handoff/evidence paths for support-installation correctness or publication-risk wording, read only those paths and record them in the audit receipt. Do not consult a registry, search or glob a support root, traverse references, or discover documents; global-root permission grants no such authority. Support documents are non-authoritative.
 
 If a missing capability prevents a conclusive audit, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during audit.
 

@@ -44,8 +44,11 @@ permission:
     "git switch*": deny
     "git branch*": deny
     "git worktree*": deny
+    "*<GLOBAL_SOF_SUPPORT_ROOT>*": deny
   task: deny
-  external_directory: ask
+  external_directory:
+    "*": ask
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -74,7 +77,7 @@ Return `BLOCKED` without project commands when any input is stale, incomplete, t
 - Confirm the recomputed tuple matches the approved tuple recorded in `state.md`. Return `BLOCKED` on any mismatch.
 - Do not use Git status as authority-artifact integrity evidence.
 - The active sibling `state.md` is expected workflow metadata. It must not change during verifier execution; Flow may update it with this verification receipt afterward.
-- Normally do not consult support documents. The approved verification commands, plan.md, and evidence.md are the sole authorities for this gate.
+- Normally do not consult support documents. If Flow explicitly supplies exact evidence-registered project-local or global-installed paths for verification-rule interpretation, read only those paths and record them in the verification receipt. Do not consult a registry, search or glob a support root, traverse references, or discover documents; global-root permission grants no such authority. Support documents are non-authoritative, and the approved verification commands, plan.md, and evidence.md remain the sole authorities for this gate.
 
 ## Boundaries
 

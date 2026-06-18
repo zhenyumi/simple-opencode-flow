@@ -8,6 +8,9 @@ import { homedir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SOURCE_DIR = resolve(__dirname, '..', 'agents');
 const SOF_SUPPORT_SOURCE = resolve(__dirname, '..', 'sof-support');
+const GLOBAL_CONFIG_ROOT = resolve(homedir(), '.config', 'opencode');
+const GLOBAL_SOF_SUPPORT_ROOT = resolve(GLOBAL_CONFIG_ROOT, 'sof-support');
+const GLOBAL_SOF_SUPPORT_PLACEHOLDER = '<GLOBAL_SOF_SUPPORT_ROOT>';
 
 // Parse arguments
 const args = process.argv.slice(2);
@@ -95,19 +98,33 @@ if (sourceFiles.length === 0) {
 
 // Validate support directory (optional but copies if present)
 const hasSupportDocs = existsSync(SOF_SUPPORT_SOURCE);
+const isGlobalInstall = targetPath === null && scope === 'global';
 
 // Determine paths based on scope
 const targetDir = targetPath !== null
   ? resolve(targetPath, '.opencode', 'agents')
   : scope === 'project'
     ? resolve(process.cwd(), '.opencode', 'agents')
-    : resolve(homedir(), '.config', 'opencode', 'agents');
+    : resolve(GLOBAL_CONFIG_ROOT, 'agents');
 
 const configDir = targetPath !== null
   ? targetPath
   : scope === 'project'
     ? process.cwd()
-    : resolve(homedir(), '.config', 'opencode');
+    : GLOBAL_CONFIG_ROOT;
+
+const supportTarget = targetPath !== null
+  ? resolve(targetPath, '.opencode', 'sof-support')
+  : scope === 'project'
+    ? resolve(process.cwd(), '.opencode', 'sof-support')
+    : GLOBAL_SOF_SUPPORT_ROOT;
+
+const normalizedGlobalSupportRoot = GLOBAL_SOF_SUPPORT_ROOT.replaceAll('\\', '/');
+
+function renderAgentContent(content) {
+  if (!isGlobalInstall) return content;
+  return content.replaceAll(GLOBAL_SOF_SUPPORT_PLACEHOLDER, normalizedGlobalSupportRoot);
+}
 
 const VALID_ACTIONS = new Set(['allow', 'ask', 'deny']);
 const DENIED_TASK_AGENTS = ['sof-*', 'flow'];
@@ -272,24 +289,27 @@ for (const file of sourceFiles) {
   const destPath = join(targetDir, file);
 
   if (dryRun) {
-    console.log(`[DRY-RUN] Copy ${srcPath} -> ${destPath}`);
+    const action = isGlobalInstall
+      ? `Render ${GLOBAL_SOF_SUPPORT_PLACEHOLDER} as ${normalizedGlobalSupportRoot}`
+      : `Copy unchanged (preserve ${GLOBAL_SOF_SUPPORT_PLACEHOLDER})`;
+    console.log(`[DRY-RUN] ${action}: ${srcPath} -> ${destPath}`);
   } else {
     if (!existsSync(targetDir)) {
       mkdirSync(targetDir, { recursive: true });
     }
-    cpSync(srcPath, destPath);
-    console.log(`Copied ${srcPath} -> ${destPath}`);
+    if (isGlobalInstall) {
+      const sourceContent = readFileSync(srcPath, 'utf-8');
+      writeFileSync(destPath, renderAgentContent(sourceContent));
+      console.log(`Rendered ${srcPath} -> ${destPath}`);
+    } else {
+      cpSync(srcPath, destPath);
+      console.log(`Copied unchanged ${srcPath} -> ${destPath}`);
+    }
   }
 }
 
 // Copy support documents (separate from agents; non-authoritative references)
 if (hasSupportDocs) {
-  const supportTarget = targetPath !== null
-    ? resolve(targetPath, '.opencode', 'sof-support')
-    : scope === 'project'
-      ? resolve(process.cwd(), '.opencode', 'sof-support')
-      : resolve(homedir(), '.config', 'opencode', 'sof-support');
-
   if (dryRun) {
     console.log(`[DRY-RUN] Copy ${SOF_SUPPORT_SOURCE}/* -> ${supportTarget}/`);
   } else {

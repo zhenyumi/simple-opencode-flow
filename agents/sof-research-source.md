@@ -25,7 +25,9 @@ permission:
   write: deny
   apply_patch: deny
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: allow
   websearch: allow
   skill: allow
@@ -42,6 +44,8 @@ Require a focused research question and any named source or URL. When invoked as
 3. Read the relevant content before relying on it. A URL, title, search result, or snippet alone is not evidence.
 4. Answer only the requested question. Distinguish sourced facts, inferences, and unresolved gaps.
 5. If the source cannot be accessed, report the attempted source and concrete access failure. Do not claim that all external websites are inaccessible, invent an answer, or propose repository changes unless the parent request explicitly asks for planning.
+
+If Flow supplies support-document paths, read only those exact paths and record any document consulted. Do not consult a registry, search or glob a support root, traverse references, or discover other documents; permission to read the global root grants no such authority. Support documents are non-authoritative and never expand the research scope.
 
 For research supporting a workflow, assign compact non-colliding `SOURCE-*` and Evidence IDs when supplied with an existing ID set. In a parallel workflow research branch, use only Flow's supplied ID prefix. Record source type/location, accessed content, access date, extracted fact/constraint/risk/unknown, freshness requirement, and dependent Evidence IDs. For standalone questions, use concise source citations without workflow IDs.
 

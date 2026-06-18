@@ -37,7 +37,9 @@ permission:
     "sha256sum .opencode/plans/*/plan.md": allow
     "sha256sum .opencode/plans/*/evidence.md": allow
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -72,7 +74,7 @@ For integrated review, fully inspect deferred units and cross-unit behavior. Reu
 
 Review changed code in context and trace callers/consumers when needed:
 
-When reviewing implementation that involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the approved evidence for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Record use only in the review receipt. Do not mutate approved evidence solely because a support document was read. Support documents are non-authoritative; the approved plan.md, evidence.md, and agent definitions take precedence.
+When reviewing implementation that involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only exact project-local or global-installed support-document paths registered in approved evidence. Do not consult the registry, search or glob a support root, traverse references, or discover unregistered documents; global-root permission grants no such authority. Record any document read in the review receipt and do not mutate approved evidence solely because it was read. Support documents are non-authoritative; approved plan.md, evidence.md, and agent definitions take precedence.
 
 1. Approval integrity and actual changed-file scope.
 2. Continued validity of the workflow profile, specification, and acceptance-criteria coverage.

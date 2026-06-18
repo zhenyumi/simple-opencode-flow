@@ -34,7 +34,9 @@ permission:
     "powershell -Command \"(Get-FileHash .opencode/plans/*/plan.md -Algorithm SHA256).Hash\"": allow
     "powershell -Command \"(Get-FileHash .opencode/plans/*/evidence.md -Algorithm SHA256).Hash\"": allow
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -57,6 +59,8 @@ Compute plan and evidence SHA-256 values once and construct the candidate tuple.
 ## Review Standard
 
 Review the complete plan/evidence on loop attempt `1` and after every `MATERIAL_BASIS_CHANGE`. For `FINDING_ONLY`, review prior findings, changed sections, and directly affected references.
+
+Consult support documents only through exact project-local or global-installed paths supplied by Flow or already registered in evidence, and record any document read in the review receipt. Do not consult a registry, search or glob a support root, traverse references, or discover documents; global-root permission grants no such authority. Support documents are non-authoritative.
 
 Confirm:
 

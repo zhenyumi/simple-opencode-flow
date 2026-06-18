@@ -15,7 +15,9 @@ permission:
     "**/.Renviron": deny
     "**/*credential*": deny
     "**/*secret*": deny
-  edit: allow
+  edit:
+    "*": allow
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
   glob: allow
   grep: allow
   list: allow
@@ -42,8 +44,11 @@ permission:
     "git switch*": deny
     "git branch*": deny
     "git worktree*": deny
+    "*<GLOBAL_SOF_SUPPORT_ROOT>*": deny
   task: deny
-  external_directory: ask
+  external_directory:
+    "*": ask
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: allow
   websearch: allow
   skill: allow
@@ -67,7 +72,7 @@ Read `plan.md`, `evidence.md`, and `state.md` before any edit, Bash command, or 
 
 1. Inspect repository state and the declared Repository Access Index entry or relevant files.
 2. Confirm the unit matches repository reality and local patterns.
-When the approved unit involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the approved evidence for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Record use only in the implementation receipt. Do not mutate approved evidence solely because a support document was read. Support documents are non-authoritative; the approved plan.md, evidence.md, and agent definitions take precedence.
+When the approved unit involves plan-structure rules, review standards, verification patterns, or agent interaction rules, consult only exact project-local or global-installed support-document paths registered in approved evidence. Do not consult the registry, search or glob a support root, traverse references, or discover unregistered documents; global-root permission grants no such authority. Record any document read in the implementation receipt and do not mutate approved evidence solely because it was read. Support documents are non-authoritative; approved plan.md, evidence.md, and agent definitions take precedence.
 3. Make the smallest coherent change within allowed scope.
 Do not perform unrelated formatting, cleanup, renames, refactors, helper extraction, code generation, or mutating automation unless explicitly required by the approved unit.
 4. Add focused tests only when required to prove the unit.

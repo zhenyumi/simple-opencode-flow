@@ -23,6 +23,7 @@ permission:
   edit:
     "*": deny
     ".opencode/plans/*/state.md": allow
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
   write: deny
   apply_patch: deny
   bash: deny
@@ -39,7 +40,9 @@ permission:
     "sof-review-code": allow
     "sof-verify-release": allow
     "sof-audit-release": allow
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   lsp: deny
@@ -110,9 +113,10 @@ A `CAPABILITY_GAP` exists only after the responsible SOF agent cannot complete a
 I/O discipline:
 
 - Prefer indexed discovery before broad reads: use names, paths, Evidence IDs, changed-file lists, and registered support-document paths to narrow the next handoff.
-  - When constructing a handoff, read only the fenced YAML metadata block in `.opencode/sof-support/registry.md` for route/path metadata. Match each document entry's `routes` array against the active route (`ANSWER`, `CHANGE`, `OPERATION`, or `ALL`) and collect the complete route-matched set as candidate support-document paths. Resolve paths relative to `.opencode/sof-support/`. Registry prose is documentation, not Flow runtime authority; any rule that changes Flow handoff behavior must be stated in this agent definition before Flow may rely on it.
-  - Registry-matched candidate support-document paths are additive handoff context, not validation of user-specified paths. Do not filter candidate paths by user-mentioned files, target files, changed files, or Flow's own task-relevance judgment. Flow may deduplicate exact duplicate candidate paths within the candidate list, but must not drop a route-matched candidate because another candidate appears in the user-specified file list.
-  - Keep candidate support-document paths distinct from user-specified repository files in the handoff. Do not read referenced lens content; Flow's role is metadata distribution, not support-document consultation. Candidate paths are non-authoritative. Before evidence registration in a `CHANGE` workflow, pass the complete candidate set to `sof-explore-repository` for task-relevance assessment and possible evidence registration. After evidence registration, including formal `CHANGE` gates, include only evidence-registered support-document paths in the handoff.
+  - Before constructing a support-document handoff, select exactly one support root. If current-workspace `.opencode/sof-support/registry.md` exists, select `.opencode/sof-support/`; it fully shadows global support even when unreadable or malformed. Otherwise, if `<GLOBAL_SOF_SUPPORT_ROOT>/registry.md` is readable, select `<GLOBAL_SOF_SUPPORT_ROOT>/`. Never merge registries or cross-fallback from a selected broken registry. If neither registry is available, continue without support documents unless the task explicitly depends on support guidance, in which case return `BLOCKED`.
+  - Read only the selected registry's fenced YAML metadata block. Registry prose is documentation, not Flow runtime authority, and Flow never reads referenced support-document bodies. A selected registry that cannot be read because required access is unavailable is `CAPABILITY_GAP`; malformed selected metadata is `BLOCKED` for inconsistent SOF support configuration.
+  - Evaluate valid `routes`, `stages`, `agents`, and `use_when` selectors against the active handoff before validating an entry's path; absent optional selectors impose no restriction, while `authority` and `auto_load` never grant authority or body loading. Skip a valid non-matching entry. A malformed selector that prevents applicability assessment is `BLOCKED`. For a matching entry, reject an empty or absolute path, parent traversal, resolution outside the selected root, a missing document, or an unreadable required document; return `CAPABILITY_GAP` only when the failure is specifically unavailable read capability, otherwise `BLOCKED`.
+  - Collect the complete matching set as additive, non-authoritative candidate paths. Do not filter it by user-mentioned files, changed files, or Flow's task-relevance judgment; only deduplicate exact duplicates. Keep candidates distinct from user-specified files. Before evidence registration in a `CHANGE`, pass the complete candidate set to `sof-explore-repository`; afterward, including formal gates, pass only evidence-registered support-document paths.
 - Handoffs should carry compact facts, paths, section names, line anchors when available, Evidence IDs, and unresolved gaps. Do not copy large source blocks, whole artifacts, or raw transcripts when a path plus focused instruction is sufficient.
 - Ask delegates for the minimum repository read that can satisfy their gate. If a delegate reports that broader reading is required, require it to name the concrete missing scope and why the current index is insufficient.
 - When a delegate reads outside the supplied index or handoff scope, its receipt should name each extra file or scope and the concrete reason it was needed.

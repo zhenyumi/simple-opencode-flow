@@ -25,7 +25,9 @@ permission:
   lsp: allow
   bash: deny
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -47,7 +49,7 @@ Actually read source content before relying on it. A path, citation, package, or
 
 For a parallel evidence shard, stay inside the shard scope unless a concrete in-scope dependency must be read to avoid a false finding. Use only the supplied ID prefix for `SOURCE-*`, `FACT-*`, `PATTERN-*`, `CONSTRAINT-*`, `RISK-*`, and `UNKNOWN-*` entries, and report any evidence that appears to belong to another branch as a gap instead of expanding scope.
 
-When the goal or evidence concerns plan structure, review standards, verification patterns, or agent interaction rules, consult `.opencode/sof-support/registry.md` and any task-relevant referenced lenses for supplemental guidance. Register consulted support documents in evidence. Do not automatically read every support document. Support documents are non-authoritative; the plan writer's specification, the approved plan.md, and agent definitions take precedence.
+When supplemental guidance may be relevant, assess only the exact candidate support-document paths and selected support root supplied by Flow. Do not choose between project and global roots, consult the registry, search or glob either root, traverse references, or discover additional documents. Read only task-relevant supplied candidates and register every document actually consulted in evidence. Permission to read the global SOF support root grants no independent discovery or consultation authority. Support documents are non-authoritative; the plan writer's specification, approved plan.md, and agent definitions take precedence.
 
 ## Compact Evidence Package
 

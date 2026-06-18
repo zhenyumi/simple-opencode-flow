@@ -8,6 +8,9 @@ import { homedir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SOURCE_DIR = resolve(__dirname, '..', 'agents');
 const SOF_SUPPORT_SOURCE = resolve(__dirname, '..', 'sof-support');
+const GLOBAL_CONFIG_ROOT = resolve(homedir(), '.config', 'opencode');
+const GLOBAL_SOF_SUPPORT_ROOT = resolve(GLOBAL_CONFIG_ROOT, 'sof-support');
+const GLOBAL_SOF_SUPPORT_PLACEHOLDER = '<GLOBAL_SOF_SUPPORT_ROOT>';
 
 // Parse arguments
 const args = process.argv.slice(2);
@@ -95,27 +98,35 @@ if (sourceFiles.length === 0) {
 
 // Validate support directory (optional but removes if present)
 const hasSupportDocs = existsSync(SOF_SUPPORT_SOURCE);
+const isGlobalInstall = targetPath === null && scope === 'global';
 
 // Determine paths based on scope
 const targetDir = targetPath !== null
   ? resolve(targetPath, '.opencode', 'agents')
   : scope === 'project'
     ? resolve(process.cwd(), '.opencode', 'agents')
-    : resolve(homedir(), '.config', 'opencode', 'agents');
+    : resolve(GLOBAL_CONFIG_ROOT, 'agents');
 
 const configDir = targetPath !== null
   ? targetPath
   : scope === 'project'
     ? process.cwd()
-    : resolve(homedir(), '.config', 'opencode');
+    : GLOBAL_CONFIG_ROOT;
 
 const supportTarget = targetPath !== null
   ? resolve(targetPath, '.opencode', 'sof-support')
   : scope === 'project'
     ? resolve(process.cwd(), '.opencode', 'sof-support')
-    : resolve(homedir(), '.config', 'opencode', 'sof-support');
+    : GLOBAL_SOF_SUPPORT_ROOT;
 
 const DENIED_TASK_AGENTS = ['sof-*', 'flow'];
+const normalizedGlobalSupportRoot = GLOBAL_SOF_SUPPORT_ROOT.replaceAll('\\', '/');
+
+function expectedAgentContent(srcPath) {
+  const sourceContent = readFileSync(srcPath, 'utf-8');
+  if (!isGlobalInstall) return Buffer.from(sourceContent);
+  return Buffer.from(sourceContent.replaceAll(GLOBAL_SOF_SUPPORT_PLACEHOLDER, normalizedGlobalSupportRoot));
+}
 
 // Helper: walk directory recursively and return relative paths
 function walkDir(dir, base = dir) {
@@ -213,7 +224,7 @@ for (const file of sourceFiles) {
     continue;
   }
 
-  const srcContent = readFileSync(srcPath);
+  const srcContent = expectedAgentContent(srcPath);
   const destContent = readFileSync(destPath);
 
   if (srcContent.equals(destContent)) {
@@ -225,7 +236,8 @@ for (const file of sourceFiles) {
     }
     removedCount++;
   } else {
-    console.warn(`  [SKIP] ${file} (content differs from source)`);
+    const sourceDescription = isGlobalInstall ? 'transformed source' : 'source';
+    console.warn(`  [SKIP] ${file} (content differs from ${sourceDescription})`);
     skippedCount++;
   }
 }

@@ -222,7 +222,9 @@ Native fallback agents are not part of normal Flow routing. Any future native-ag
 
 ### Support Documents
 
-Support documents are optional, non-authoritative references. Project and `--target` installs place them under `.opencode/sof-support/`. They are not agents, skills, commands, workflows, gates, or workflow authority. They are not automatically loaded and do not override SOF routing, artifacts, approved tuples, commands, approvals, verification, audit, stop conditions, or user instructions. Available support documents are listed through `registry.md`.
+Support documents are optional, read-only, non-authoritative references kept as separate Markdown files. Project and `--target` installs place them under `.opencode/sof-support/`; global installs place them under `~/.config/opencode/sof-support/`. When a project registry exists it fully shadows the global registry. Flow uses the global registry only when the project registry is absent, never merges registries, and never falls back globally from a broken project registry.
+
+Flow reads only selected registry metadata and hands exact support-document paths to subagents. A global-root permission does not authorize independent discovery, globbing, registry traversal, or consultation. Support documents are not agents, skills, commands, workflows, gates, or workflow authority, and they never override routing, artifacts, approved tuples, commands, approvals, verification, audit, stop conditions, or user instructions.
 
 ### Terminology
 
@@ -256,6 +258,8 @@ node scripts/install.mjs --dry-run
 
 Project, target, and global installs patch or create `opencode.json` with deny entries that prevent native `build` and `plan` agents from invoking Flow or `sof-*` agents directly. The installer rejects JSONC configuration and preserves unrelated existing configuration.
 
+Project and `--target` installs are project-local: they preserve the literal `<GLOBAL_SOF_SUPPORT_ROOT>` permission placeholder and copy support files into the target project's `.opencode/sof-support/`. Only `--scope global` replaces that placeholder in installed agents with the normalized absolute `~/.config/opencode/sof-support` path. The unresolved project placeholder matches no real path, so each agent retains its original external-directory deny or ask default.
+
 Install is additive and scoped: it copies or updates SOF-owned agent/support files in their corresponding target locations, does not delete unrelated files, and patches only the required `opencode.json` permission paths. If an existing config path has an incompatible non-object value, install fails before writing. Re-running install is idempotent for the same SOF-owned files and config paths.
 
 #### Manual Installation
@@ -265,6 +269,8 @@ Copy the files from `agents/` to the desired OpenCode agents directory:
 - Project: `<project>/.opencode/agents/`
 - Global: `~/.config/opencode/agents/`
 - Custom project: `<custom-project>/.opencode/agents/`
+
+For a project or custom-project installation, also copy `sof-support/` to `<project>/.opencode/sof-support/` and leave `<GLOBAL_SOF_SUPPORT_ROOT>` unchanged. For a global installation, copy `sof-support/` to `~/.config/opencode/sof-support/` and replace every `<GLOBAL_SOF_SUPPORT_ROOT>` occurrence in the installed agent copies with that absolute global support path. Do not replace placeholders in the canonical source files.
 
 For project installations, optionally add the same invocation boundary manually:
 

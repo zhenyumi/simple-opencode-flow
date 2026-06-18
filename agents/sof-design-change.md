@@ -25,7 +25,9 @@ permission:
   lsp: allow
   bash: deny
   task: deny
-  external_directory: deny
+  external_directory:
+    "*": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": allow
   webfetch: deny
   websearch: deny
   skill: allow
@@ -39,7 +41,7 @@ Require the goal, users, constraints, acceptance criteria, locked choices, workf
 
 1. Ground every material decision in Evidence IDs.
 
-When the design concerns plan structure, review standards, verification patterns, or agent interaction rules, consult only the exact support-document paths already registered in the Evidence Package for supplemental guidance. Do not consult the registry, traverse referenced lenses, or discover unregistered support documents. Support documents are non-authoritative; the plan writer's specification, the approved plan.md, evidence.md, and agent definitions take precedence.
+When the design concerns plan structure, review standards, verification patterns, or agent interaction rules, consult only exact project-local or global-installed support-document paths already registered in the Evidence Package. Do not consult the registry, search or glob a support root, traverse references, or discover unregistered documents; global-root permission grants no such authority. Record any document read in the design receipt. Support documents are non-authoritative; the plan writer's specification, approved plan.md, evidence.md, and agent definitions take precedence.
 
 2. Choose the smallest coherent design that satisfies the goal.
 3. Compare alternatives only when a real unresolved tradeoff exists.
