@@ -54,6 +54,10 @@ Flow plans and independently reviews the exact change first. After plan approval
 Approve execution of the current approved plan.
 ```
 
+### Support Document Registry
+
+The Support Document Registry is an extensible YAML metadata file that lists available support documents. Flow reads only the registry metadata during planning to discover support documents, not the document bodies themselves. Support documents are optional, non-authoritative references that never override workflow rules, routing, artifacts, or approvals.
+
 ## How Flow Routes Work
 
 | Route | Use when | Default behavior |
@@ -226,6 +230,30 @@ Support documents are optional, read-only, non-authoritative references kept as 
 
 Flow reads only selected registry metadata and hands exact support-document paths to subagents. A global-root permission does not authorize independent discovery, globbing, registry traversal, or consultation. Support documents are not agents, skills, commands, workflows, gates, or workflow authority, and they never override routing, artifacts, approved tuples, commands, approvals, verification, audit, stop conditions, or user instructions.
 
+### Customizing the Support Document Registry
+
+The registry lives at `.opencode/sof-support/registry.md` (project) or `~/.config/opencode/sof-support/registry.md` (global). A project registry fully shadows the global registry; registries are never merged and a broken project registry does not fall back to global.
+
+The registry uses a simple YAML structure:
+
+- `version` — registry format version (currently `1`)
+- `documents` — an array of entries
+
+Each entry has these required fields:
+
+| Field | Description |
+| --- | --- |
+| `path` | Relative path to the support document under the support root |
+| `type` | Document type (e.g., `lens`) |
+| `purpose` | Short description of what the document provides |
+| `routes` | Flow routes where the document may be relevant (e.g., `[CHANGE]`) |
+| `authority` | Always `non-authoritative` for support documents |
+| `auto_load` | Whether the document is automatically loaded (almost always `false`) |
+
+Optional fields include `stages` (pipeline stages), `agents` (target subagents), and `use_when` (conditional selectors). These selectors refine when a document is relevant without changing existing route-only entries.
+
+To add a new support document, create the Markdown file under the support root and add a matching entry to the registry's `documents` array. Flow will discover it on the next planning cycle.
+
 ### Terminology
 
 - **Subagent invocation**: one focused-agent call made by Flow.
@@ -298,6 +326,36 @@ For project installations, optionally add the same invocation boundary manually:
 ```
 
 The `.opencode/` directory in this repository is a local OpenCode work directory, not the distribution source.
+
+### Uninstaller
+
+The zero-dependency uninstaller reverses an SOF install:
+
+```bash
+# Project-level uninstall
+node scripts/uninstall.mjs --scope project
+
+# Global uninstall
+node scripts/uninstall.mjs --scope global
+
+# Uninstall from another project
+node scripts/uninstall.mjs --target ./my-project
+
+# Preview without changes
+node scripts/uninstall.mjs --dry-run
+```
+
+The uninstaller operates in three phases:
+
+1. **Agent removal**: removes agent files under `.opencode/agents/` that match the source by content comparison. Files with modifications are skipped.
+2. **Support removal**: removes support files under `.opencode/sof-support/` that match the source. Modified support files are skipped.
+3. **Configuration restoration**: creates a backup of `opencode.json` (`opencode.json.sof-backup`), then removes the SOF deny entries for `sof-*` and `flow` from `build.agent` and `plan.agent` permission blocks. Empty parent objects are cleaned up bottom-up. If the config becomes empty and only contained SOF entries, the file is removed entirely.
+
+After removal, the uninstaller performs bottom-up empty directory cleanup for both agent and support directories. A summary reports counts of removed and skipped files.
+
+The uninstaller rejects `opencode.jsonc` (JSONC) configuration and exits without making changes.
+
+`--scope` and `--target` are mutually exclusive. Use `--help` to see all options.
 
 ### Recommended Plugins
 
