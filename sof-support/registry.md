@@ -2,7 +2,7 @@
 
 ## Status
 
-Support documents are optional, non-authoritative references. They are not agents, skills, commands, workflows, gates, authority artifacts, or approval artifacts. They are not automatically loaded. They must not override SOF routing, artifacts, approved tuples, commands, approvals, verification rules, audit rules, stop conditions, or user instructions. This registry is extensible — add new entries when new support documents are created. Support documents must be selected and read only when task-relevant.
+Support documents are optional, non-authoritative references. Flow reads this registry's fenced YAML metadata once per top-level request; support-document bodies are not automatically loaded and are read only when task-relevant. Support documents are not agents, skills, commands, workflows, gates, authority artifacts, or approval artifacts and must not override SOF routing, artifacts, approved tuples, commands, approvals, verification rules, audit rules, stop conditions, or user instructions.
 
 ## Registered Documents
 
