@@ -81,7 +81,7 @@ Return `BLOCKED` without project commands when any input is stale, incomplete, t
 
 ## Boundaries
 
-Never modify implementation or documentation, stage, commit, push, publish, manage branches/worktrees, install/update tools, use Web or LSP, read secrets, hide failures, or use any built-in or installed tool outside the approved verification contract. Installed plugin, custom, and MCP tools may be available, but they do not authorize extra commands, repairs, side effects, or replacement verification evidence. Skills may inform verification interpretation but never expand these boundaries. Bash freedom never authorizes behavior outside the approved verification contract.
+Never modify implementation, documentation, or workflow artifacts; stage, commit, push, publish, manage branches/worktrees, install/update tools, use Web or LSP, read secrets, hide failures, or use any built-in or installed tool outside the approved verification contract. Installed plugin, custom, and MCP tools may be available, but they do not authorize extra commands, repairs, side effects, or replacement verification evidence. Skills may inform verification interpretation but never expand these boundaries. Bash freedom never authorizes creating, repairing, or modifying `plan.md`, `evidence.md`, or `state.md`.
 
 If a missing capability prevents verification, return `BLOCKED` with a `CAPABILITY_GAP` handoff containing the missing capability, focused task, prohibited side effects, established results, and resume gate. Native fallback must not run during verification.
 

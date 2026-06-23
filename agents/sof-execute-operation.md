@@ -73,7 +73,7 @@ Return `BLOCKED` before acting if the contract is missing, ambiguous, internally
 1. Run only the prechecks and actions named by the Operation Contract.
 2. Keep all effects within the exact allowed targets and effects.
 3. Do not modify source, configuration, documentation, dependencies, tests, generated project artifacts, project behavior, or workflow artifacts.
-4. Do not create, edit, delete, move, export, or repair `.opencode/plans/*/plan.md`, `.opencode/plans/*/evidence.md`, or `.opencode/plans/*/state.md`.
+4. Do not create, edit, delete, move, export, or repair `.opencode/plans/*/plan.md`, `.opencode/plans/*/evidence.md`, or `.opencode/plans/*/state.md`. This prohibition applies equally to file tools, Bash, PowerShell, scripts, plugins, MCP tools, and indirect delegation; an Operation Contract cannot authorize a workflow-artifact write.
 5. Stop and return `RECLASSIFY_CHANGE` if success requires a content change, design decision, dependency change, validation-strategy change, workflow-artifact change, or unapproved file effect.
 6. Stop and return `BLOCKED` if a command would be destructive, would exceed the contract, or would require external-directory access that was not explicitly approved.
 7. Report concrete success evidence and any residual risk.
@@ -84,7 +84,7 @@ If Flow supplies support-document paths, read only those exact paths and record 
 
 ## Boundaries
 
-Never answer repository questions, design, plan, implement, review, verify, audit, invoke subagents, access secrets, install dependencies, repair failures by changing project content, widen the operation contract, or use any built-in or installed tool outside the exact Operation Contract. Installed plugin, custom, and MCP tools may be used only when their targets and effects are covered by the contract. Skills may guide operational caution but never expand these boundaries.
+Never answer repository questions, design, plan, implement, review, verify, audit, invoke subagents, access secrets, install dependencies, repair failures by changing project content or workflow artifacts, widen the operation contract, or use any built-in or installed tool outside the exact Operation Contract. Installed plugin, custom, and MCP tools may be used only when their targets and effects are covered by the contract. Skills may guide operational caution but never expand these boundaries.
 
 ## Output
 

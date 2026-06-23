@@ -120,6 +120,27 @@ Flow does not decide whether a plugin should be installed, enabled, allowed, or 
 
 Plugin availability does not change workflow authority. `plan.md`, `evidence.md`, `state.md`, route selection, approval tuples, review, verification, audit, stop conditions, and artifact locality rules remain binding. If a plugin has its own subagent, context, or permission settings, configure those in the plugin or OpenCode configuration rather than in Flow.
 
+### File Mutation Permissions
+
+OpenCode's built-in `edit`, `write`, and `apply_patch` tools all evaluate file changes through the `edit` permission in current releases. SOF nevertheless declares identical path rules for all three tool names. This explicit mirroring keeps agent intent visible and avoids compatibility ambiguity with plugins or runtimes that expose the tools independently.
+
+OpenCode may report a current-workspace file either as `.opencode/plans/...` or with a workspace-relative prefix such as `Codex/project/.opencode/plans/...`, especially for non-Git directories represented by a global project. SOF planning-artifact rules therefore cover both:
+
+- `.opencode/plans/*/<artifact>.md`
+- `*/.opencode/plans/*/<artifact>.md`
+
+These patterns do not expand workflow authority. Artifact locality, current-workspace checks, external-directory permissions, and each agent's role constraints remain binding.
+
+| Agent role | File mutation authority |
+| --- | --- |
+| `flow` | Update an existing active `state.md` only; never initialize a missing state file |
+| `sof-write-plan` | Create or revise `plan.md` and `evidence.md`, and initialize `state.md`, only in the active plan directory |
+| `sof-implement-task` | Modify approved project files, but never `.opencode/plans/**` or SOF support files |
+| `sof-execute-operation`, `sof-verify-release` | No file-tool writes; Bash does not authorize workflow-artifact creation or repair |
+| Answer, research, exploration, design, review, and audit agents | Read-only |
+
+Workflow artifacts may be written only by their responsible role. A writer permission failure is a `CAPABILITY_GAP` or `BLOCKED` result; Flow must not use `sof-execute-operation`, Bash, or another auxiliary agent as a write fallback.
+
 ## CHANGE Workflow Details
 
 Every `CHANGE` uses a profile matched to its scope and risk:
@@ -282,6 +303,9 @@ node scripts/install.mjs --target ./my-project
 
 # Preview without changes
 node scripts/install.mjs --dry-run
+
+# Validate agent permission invariants
+node scripts/check-agent-permissions.mjs
 ```
 
 Project, target, and global installs patch or create `opencode.json` with deny entries that prevent native `build` and `plan` agents from invoking Flow or `sof-*` agents directly. The installer rejects JSONC configuration and preserves unrelated existing configuration.

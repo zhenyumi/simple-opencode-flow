@@ -17,6 +17,18 @@ permission:
     "**/*secret*": deny
   edit:
     "*": allow
+    ".opencode/plans/**": deny
+    "*/.opencode/plans/**": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
+  write:
+    "*": allow
+    ".opencode/plans/**": deny
+    "*/.opencode/plans/**": deny
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
+  apply_patch:
+    "*": allow
+    ".opencode/plans/**": deny
+    "*/.opencode/plans/**": deny
     "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
   glob: allow
   grep: allow

@@ -18,19 +18,36 @@ permission:
   edit:
     "*": deny
     ".opencode/plans/*/plan.md": allow
+    "*/.opencode/plans/*/plan.md": allow
     ".opencode/plans/*/evidence.md": allow
+    "*/.opencode/plans/*/evidence.md": allow
     ".opencode/plans/*/state.md": allow
+    "*/.opencode/plans/*/state.md": allow
     "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
-  write: deny
-  apply_patch: deny
+  write:
+    "*": deny
+    ".opencode/plans/*/plan.md": allow
+    "*/.opencode/plans/*/plan.md": allow
+    ".opencode/plans/*/evidence.md": allow
+    "*/.opencode/plans/*/evidence.md": allow
+    ".opencode/plans/*/state.md": allow
+    "*/.opencode/plans/*/state.md": allow
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
+  apply_patch:
+    "*": deny
+    ".opencode/plans/*/plan.md": allow
+    "*/.opencode/plans/*/plan.md": allow
+    ".opencode/plans/*/evidence.md": allow
+    "*/.opencode/plans/*/evidence.md": allow
+    ".opencode/plans/*/state.md": allow
+    "*/.opencode/plans/*/state.md": allow
+    "<GLOBAL_SOF_SUPPORT_ROOT>/**": deny
   glob: allow
   grep: allow
   list: allow
   todowrite: allow
   lsp: deny
-  bash:
-    "*": deny
-    "mkdir -p .opencode/plans/*": allow
+  bash: deny
   task: deny
   external_directory:
     "*": deny
@@ -75,7 +92,7 @@ Create a stable current-workspace-relative directory:
 - Never write approval into plan/evidence or a file's SHA-256 into itself.
 - Workflow artifact paths must be relative to the current working directory and must stay under `.opencode/plans/YYYY-MM-DD-<slug>/`. Absolute paths, parent traversal, sibling repositories, global SOF artifact paths, nested foreign `.opencode/plans` directories, or wildcard-prefixed plan-directory targets are invalid. This locality rule applies only to Flow-generated `plan.md`, `evidence.md`, and `state.md` artifacts.
 
-Create the directory only with `mkdir -p .opencode/plans/YYYY-MM-DD-<slug>`. Never run another shell command.
+Create the three files directly with an allowed file tool; OpenCode's file tools create missing parent directories. Never use Bash or an operation agent to create, initialize, repair, or modify workflow artifacts.
 
 ## Required Headers
 
